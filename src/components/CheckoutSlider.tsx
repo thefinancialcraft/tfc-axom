@@ -15,20 +15,14 @@ export default function CheckoutSlider() {
     let startX = 0;
     let currentX = 0;
 
-    const onPointerDown = (e: PointerEvent) => {
-      e.preventDefault();
-      isDragging = true;
-      startX = e.clientX - currentX;
-      thumb.setPointerCapture(e.pointerId); // ✅ yahi sabse important hai
-    };
+    const getMax = () => container.getBoundingClientRect().width - thumb.getBoundingClientRect().width - 8;
 
-    const onPointerMove = (e: PointerEvent) => {
-      if (!isDragging) return;
-      e.preventDefault();
-      const maxDrag = container.getBoundingClientRect().width - thumb.getBoundingClientRect().width - 8;
-      let newX = e.clientX - startX;
+    const moveTo = (clientX: number) => {
+      const maxDrag = getMax();
+      let newX = clientX - startX;
       if (newX < 0) newX = 0;
       if (newX > maxDrag) newX = maxDrag;
+      
       currentX = newX;
       thumb.style.transition = 'none';
       thumb.style.transform = `translateX(${newX}px)`;
@@ -36,27 +30,73 @@ export default function CheckoutSlider() {
       if (newX >= maxDrag * 0.95) {
         isDragging = false;
         setUnlocked(true);
+        currentX = maxDrag;
+        thumb.style.transform = `translateX(${maxDrag}px)`;
       }
     };
 
-    const onPointerUp = () => {
-      if (!isDragging) return;
+    const snapBack = () => {
       isDragging = false;
       currentX = 0;
       thumb.style.transition = 'transform 0.3s ease';
       thumb.style.transform = 'translateX(0px)';
     };
 
-    thumb.addEventListener('pointerdown', onPointerDown);
-    thumb.addEventListener('pointermove', onPointerMove);
-    thumb.addEventListener('pointerup', onPointerUp);
-    thumb.addEventListener('pointercancel', onPointerUp);
+    // Mobile Touch Events (Highly reliable)
+    const handleTouchStart = (e: TouchEvent) => {
+      isDragging = true;
+      startX = e.touches[0].clientX - currentX;
+    };
+
+    const handleTouchMove = (e: TouchEvent) => {
+      if (!isDragging) return;
+      e.preventDefault(); // Must not be passive
+      moveTo(e.touches[0].clientX);
+    };
+
+    const handleTouchEnd = () => {
+      if (isDragging) snapBack();
+    };
+
+    // Desktop Mouse Events
+    const handleMouseDown = (e: MouseEvent) => {
+      e.preventDefault();
+      isDragging = true;
+      startX = e.clientX - currentX;
+    };
+
+    const handleMouseMove = (e: MouseEvent) => {
+      if (!isDragging) return;
+      e.preventDefault();
+      moveTo(e.clientX);
+    };
+
+    const handleMouseUp = () => {
+      if (isDragging) snapBack();
+    };
+
+    // Attach start events ONLY to the thumb
+    thumb.addEventListener('touchstart', handleTouchStart, { passive: false });
+    thumb.addEventListener('mousedown', handleMouseDown);
+
+    // Attach move and end events to the DOCUMENT so they never drop if you drag fast outside the thumb
+    document.addEventListener('touchmove', handleTouchMove, { passive: false });
+    document.addEventListener('touchend', handleTouchEnd);
+    document.addEventListener('touchcancel', handleTouchEnd);
+    
+    document.addEventListener('mousemove', handleMouseMove, { passive: false });
+    document.addEventListener('mouseup', handleMouseUp);
 
     return () => {
-      thumb.removeEventListener('pointerdown', onPointerDown);
-      thumb.removeEventListener('pointermove', onPointerMove);
-      thumb.removeEventListener('pointerup', onPointerUp);
-      thumb.removeEventListener('pointercancel', onPointerUp);
+      thumb.removeEventListener('touchstart', handleTouchStart);
+      thumb.removeEventListener('mousedown', handleMouseDown);
+
+      document.removeEventListener('touchmove', handleTouchMove);
+      document.removeEventListener('touchend', handleTouchEnd);
+      document.removeEventListener('touchcancel', handleTouchEnd);
+
+      document.removeEventListener('mousemove', handleMouseMove);
+      document.removeEventListener('mouseup', handleMouseUp);
     };
   }, [unlocked]);
 
@@ -67,7 +107,7 @@ export default function CheckoutSlider() {
         style={{
           position: 'relative',
           width: '100%',
-          height: '60px',
+          height: '55px',
           backgroundColor: unlocked ? '#FD6579' : 'rgba(255, 255, 255, 0.05)',
           border: unlocked ? '1px solid #FD6579' : '1px solid rgba(255, 255, 255, 0.1)',
           borderRadius: '30px',
@@ -80,8 +120,10 @@ export default function CheckoutSlider() {
           userSelect: 'none',
         }}
       >
-        <span style={{ 
-          color: unlocked ? '#fff' : 'rgba(255, 255, 255, 0.5)', 
+        <span 
+          className={!unlocked ? "shimmer-text" : ""}
+          style={{ 
+          color: unlocked ? '#fff' : undefined, 
           fontSize: '15px', 
           fontWeight: '500',
           letterSpacing: '1px',
@@ -102,15 +144,15 @@ export default function CheckoutSlider() {
             left: '4px',
             top: '4px',
             bottom: '4px',
-            width: '52px',
-            borderRadius: '26px',
+            width: '47px',
+            borderRadius: '24px',
             backgroundColor: 'var(--color-white)',
             boxShadow: '0 2px 10px rgba(0,0,0,0.2)',
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'center',
             cursor: unlocked ? 'default' : 'grab',
-            touchAction: 'none', // As requested
+            touchAction: 'none',
             zIndex: 2,
             transform: 'translateX(0px)',
             transition: 'transform 0.3s ease'

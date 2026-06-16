@@ -379,3 +379,18 @@ body {
 .checkout-slider-input { -webkit-appearance: none; appearance: none; background: transparent; outline: none; }
 .checkout-slider-input::-webkit-slider-thumb { -webkit-appearance: none; appearance: none; width: 60px; height: 60px; border-radius: 50%; background: transparent; cursor: grab; }
 .checkout-slider-input::-moz-range-thumb { width: 60px; height: 60px; border-radius: 50%; background: transparent; cursor: grab; border: none; }
+
+@keyframes shimmer {
+  0% { background-position: 200% 0; }
+  100% { background-position: -200% 0; }
+}
+.shimmer-text {
+  background: linear-gradient(to right, rgba(255, 255, 255, 0.3) 20%, rgba(255, 255, 255, 0.9) 50%, rgba(255, 255, 255, 0.3) 80%);
+  background-size: 200% auto;
+  color: rgba(255, 255, 255, 0.3);
+  background-clip: text;
+  text-fill-color: transparent;
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  animation: shimmer 4s linear infinite;
+}

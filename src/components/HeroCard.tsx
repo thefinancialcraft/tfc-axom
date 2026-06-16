@@ -19,7 +19,7 @@ const getLast6Days = () => {
 export default function HeroCard() {
   return (
     <div style={{
-      height: '200px',
+      height: '220px',
       margin: '20px 24px',
       backgroundColor: '#363636',
       borderRadius: '24px',
@@ -72,10 +72,10 @@ export default function HeroCard() {
           Role - <span style={{ color: 'var(--color-white)', fontWeight: '500' }}>Agent</span>
         </div>
         <div style={{ 
-          fontSize: '28px', 
+          fontSize: '32px', 
           color: 'var(--color-white)', 
           fontWeight: '700', 
-          marginTop: '16px',
+          marginTop: '26px',
           letterSpacing: '1px'
         }}>
           12:12:12
@@ -89,14 +89,15 @@ export default function HeroCard() {
         left: '0',
         right: '0',
         height: '65px',
-        backgroundColor: 'rgba(255, 255, 255, 0.12)',
-        backdropFilter: 'blur(10px)',
-        WebkitBackdropFilter: 'blur(10px)',
+        backgroundColor: 'rgba(255, 255, 255, 0.06)',
+        backdropFilter: 'blur(2px)',
+        WebkitBackdropFilter: 'blur(2px)',
         zIndex: 10,
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'space-between',
         padding: '0 20px',
+        borderRadius: '24px 24px 0 0'
       }}>
         {getLast6Days().map((item, index) => (
           <div key={index} suppressHydrationWarning style={{
