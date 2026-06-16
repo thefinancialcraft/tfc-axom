@@ -1,49 +1,381 @@
+@import url('https://fonts.cdnfonts.com/css/lufga');
+
 :root {
   --background: #ffffff;
   --foreground: #171717;
-}
+  
+  /* New Style Colors */
+  --color-black: #000000;
+  --color-white: #FFFFFF;
+  --color-green: #34BB88;
+  --color-yellow: #FFE76B;
+  --color-blue: #4484FF;
+  --color-red: #FD6579;
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
-}
-
-html {
-  height: 100%;
-}
-
-html,
-body {
-  max-width: 100vw;
-  overflow-x: hidden;
-}
-
-body {
-  min-height: 100%;
-  display: flex;
-  flex-direction: column;
-  color: var(--foreground);
-  background: var(--background);
-  font-family: Arial, Helvetica, sans-serif;
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
+  /* Legacy Colors */
+  --title-color: #263238;
+  --first-color: #4931e7;
+  --text-secondary: #6e6e6e;
+  --weight-color: #ffffff;
 }
 
 * {
   box-sizing: border-box;
-  padding: 0;
   margin: 0;
+  padding: 0;
 }
 
-a {
-  color: inherit;
-  text-decoration: none;
+body {
+  font-family: 'Lufga', sans-serif;
+  background-color: var(--color-black); /* Default to black from new style */
+  color: var(--color-white); /* Default to white from new style */
 }
 
-@media (prefers-color-scheme: dark) {
-  html {
-    color-scheme: dark;
-  }
+/* Flex Utilities */
+.flex {
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
+
+.flex-row {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+}
+
+.flex-coloum {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+}
+
+/* Header Styles */
+.mb-header {
+  width: 100%;
+  padding: 12px 16px;
+  background-color: var(--bg-color);
+  justify-content: space-between;
+  gap: 12px;
+  position: sticky;
+  top: 0;
+  z-index: 100;
+}
+
+.user-prf-pic-cont {
+  cursor: pointer;
+}
+
+.userImage {
+  width: 45px;
+  height: 45px;
+  border-radius: 50%;
+  object-fit: cover;
+}
+
+.user-id-cont {
+  flex: 1;
+}
+
+.userName {
+  font-size: 18px;
+  font-weight: 700;
+  color: var(--text-primary);
+}
+
+.user-disp {
+  gap: 8px;
+}
+
+.userId {
+  font-size: 12px;
+  color: var(--text-secondary);
+  font-weight: 500;
+  font-style: italic;
+}
+
+.userType {
+  font-size: 12px;
+    color: var(--text-secondary);
+  border-radius: 10px;
+  text-transform: uppercase;
+    font-style: italic;
+}
+
+.user-disp span {
+  width: 4px;
+  height: 4px;
+  background-color: #4931e7;
+  border-radius: 50%;
+
+}
+
+.notifyBtn, .logout-icon {
+  width: 40px;
+  height: 40px;
+  background-color: #f0f0f5;
+  border-radius: 50%;
+  position: relative;
+  /* User requested properties */
+  font-family: 'Poppins', sans-serif;
+  font-size: 16px;
+  line-height: normal;
+  font-weight: 400;
+  letter-spacing: normal;
+  color: #000000;
+}
+
+/* Combined Main Class */
+.combined-logout-btn {
+    /* 1. Layout Properties (from .flex) */
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    /* 2. Shape & Size Properties (from .user-prf-pic-cont) */
+    width: 50px;
+    height: 50px;
+    border: 2px solid #ffffff;
+    border-radius: 50%;
+    overflow: hidden;
+
+    /* 3. Specific Background & Spacing (from .logout-icon & .user-prf-pic-cont) */
+    background-color: #FAFAFA !important;
+    padding-top: 1px;
+    
+    /* Ensuring proper font properties */
+    font-family: 'Poppins', sans-serif;
+}
+
+/* 4. Click / Active State */
+.combined-logout-btn:active {
+    background-color: var(--primary-color) !important;
+}
+
+.combined-logout-btn:active i, .combined-logout-btn:active svg {
+    color: #ffffff;
+}
+
+/* 5. Default Icon Styling */
+.combined-logout-btn i {
+    color: #4931e7;
+    font-size: 4.5vw;
+}
+
+/* 6. If using an Image inside */
+.combined-logout-btn img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+/* 7. Specific Inner Icons (from .logout-icon) */
+.combined-logout-btn .wIcn {
+    width: 25px;
+}
+
+.combined-logout-btn .wifi-icon {
+    width: 30px;
+    height: 30px;
+}
+
+.notifyBtn span {
+  position: absolute;
+  top: -2px;
+  right: -2px;
+  background-color: red;
+  color: white;
+  font-size: 10px;
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+}
+
+/* Welcome Box Styles */
+.welcome-box-cont {
+    width: 100%;
+    height: 70px;
+    align-items: start;
+    justify-content: center;
+    padding-left: 20px;
+    color: var(--title-color);
+}
+
+.welcome-box-cont p {
+    font-size: 12px;
+    margin-bottom: -5px;
+}
+
+.welcome-box-cont p span {
+    font-weight: 700;
+    color: #4931e7;
+}
+
+.welcome-box-cont p i {
+    color: #ffc45f;
+    padding-right: 6px;
+}
+
+.welcome-box-cont h2 {
+    font-size: 1.6em;
+}
+
+#wlcHand {
+    display: inline-block;
+    animation: rotateWave 1s infinite linear;
+}
+
+@keyframes rotateWave {
+    0% { transform: rotate(0deg); }
+    25% { transform: rotate(15deg); }
+    50% { transform: rotate(0deg); }
+    75% { transform: rotate(-15deg); }
+    100% { transform: rotate(0deg); }
+}
+
+/* Recent Days Box Styles (Rebuilt) */
+.dly-atn-bx {
+    width: 100%;
+    height: 60px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    position: relative;
+    margin-top: 15px;
+    padding: 0 15px;
+}
+
+.dly-atn-bx .atn-bx {
+    width: 48px;
+    height: 48px;
+    border-radius: 50%;
+    background-color: transparent;
+    color: var(--title-color);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    position: relative;
+}
+
+.dly-atn-bx .atn-bx-sp {
+    background: linear-gradient(45deg, #2811bc, #8a78ff, #ce22de) !important;
+    background-size: 500% 800% !important;
+    animation: gradientAnimation 8s ease infinite !important;
+    color: #ffffff !important;
+    border: .5px solid #fff !important;
+    box-shadow: 0px 0px 8px #4931e76b !important;
+}
+
+.dly-atn-bx .atn-bx .date {
+    font-size: 16px;
+    font-weight: 700;
+    line-height: 1;
+    margin-top: -2px; /* slight adjustment to perfectly center visually */
+}
+
+.dly-atn-bx .atn-bx .month {
+    font-size: 10px;
+    font-weight: 500;
+    line-height: 1;
+    margin-top: 2px;
+}
+
+.dly-atn-bx .atn-bx .status-dash {
+    width: 10px;
+    height: 3px;
+    border-radius: 2px;
+    position: absolute;
+    bottom: 4px; /* perfectly snug below the text inside the 48px circle */
+}
+
+@keyframes gradientAnimation {
+    0% { background-position: 0% 50%; }
+    50% { background-position: 100% 50%; }
+    100% { background-position: 0% 50%; }
+}
+
+/* Attendance Check-in Slider and Dots */
+.atn-switch .dots-container {
+    display: flex;
+    width: 100%;
+    height: 100%;
+    gap: 8px;
+}
+
+.atn-switch .dot {
+    width: 12px;
+    height: 12px;
+    background-color: #00aeed;
+    border-radius: 50%;
+    animation: bounce 1s infinite ease-in-out;
+}
+
+.atn-switch .dot:nth-child(2) {
+    animation-delay: 0.3s;
+}
+
+.atn-switch .dot:nth-child(3) {
+    animation-delay: 0.6s;
+}
+
+@keyframes bounce {
+    0%, 80%, 100% {
+      transform: scale(0);
+    }
+    40% {
+      transform: scale(1);
+    }
+}
+
+.box-styling {
+    background-color: rgb(250, 250, 250);
+    border: 1px solid rgb(255, 255, 255);
+    box-shadow: rgba(0, 0, 0, 0.05) 0px 4px 15px 0px;
+    border-radius: 15px;
+    overflow: hidden;
+}
+
+/* Logout Button */
+.logout-btn-sleek {
+    width: 50px;
+    height: 50px;
+    border-radius: 50%;
+    background-color: transparent;
+    border: 1px solid rgba(255, 255, 255, 0.4);
+    color: var(--color-white);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    user-select: none;
+    -webkit-user-select: none;
+    -webkit-tap-highlight-color: transparent;
+}
+
+@media (hover: hover) and (pointer: fine) {
+    .logout-btn-sleek:hover {
+        background-color: var(--color-red);
+        border-color: var(--color-red);
+        box-shadow: 0 4px 15px rgba(253, 101, 121, 0.4);
+    }
+}
+
+.logout-btn-sleek:active {
+    background-color: var(--color-black);
+    border: 1px solid #ffffff;
+    color: #ffffff;
+}
+
+.logout-btn-sleek svg {
+    transition: transform 0.2s ease;
+}
+
+.logout-btn-sleek:active svg {
+    transform: scale(0.8);
+}
+
+.checkout-slider-input { -webkit-appearance: none; appearance: none; background: transparent; outline: none; }
+.checkout-slider-input::-webkit-slider-thumb { -webkit-appearance: none; appearance: none; width: 60px; height: 60px; border-radius: 50%; background: transparent; cursor: grab; }
+.checkout-slider-input::-moz-range-thumb { width: 60px; height: 60px; border-radius: 50%; background: transparent; cursor: grab; border: none; }

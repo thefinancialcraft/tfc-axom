@@ -1,0 +1,1304 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+
+    <title>TFC Connect</title>
+
+    <link rel="icon" href="path/to/favicon.ico" type="image/x-icon">
+    
+    
+    <!-- <link rel="stylesheet" href="/TFC-Connect/TFC-Connect/App/css/user.css"> -->
+    <link rel="stylesheet" href="/TFC-Connect/App/mobile/css/user.css">
+    <link rel="stylesheet" href="/TFC-Connect/App/mobile/css/screen.css">
+    <link rel="stylesheet" href="https://cdn-uicons.flaticon.com/uicons-solid-rounded/css/uicons-solid-rounded.css">
+    <link rel='stylesheet' href='https://cdn-uicons.flaticon.com/2.5.1/uicons-thin-rounded/css/uicons-thin-rounded.css'>
+    <link rel='stylesheet' href='https://cdn-uicons.flaticon.com/2.6.0/uicons-bold-straight/css/uicons-bold-straight.css'>
+    <link rel='stylesheet' href='https://cdn-uicons.flaticon.com/2.6.0/uicons-bold-rounded/css/uicons-bold-rounded.css'>
+  
+
+    <meta name="description" content="Welcome to the user page where you can manage your account.">
+</head>
+<body>
+
+    <div class="error-message" style="display: none;" id="error-message"></div>
+
+ 
+    <div id="cam-cnt" class="flex cmr-cnt">
+
+        <div class=" ent-ext-tim flex-row">
+
+            <div class="entry-time flex-row show-time">
+                <i class="fi flex fi-rs-arrow-left-from-arc"></i>
+                <p class="flex" id="entry-time"></p>
+            </div>
+             <div style="display: none;" class="log-updt flex">
+            
+        </div>
+            <div class="exit-time flex-row show-time">
+                <i class="fi flex fi-rs-arrow-left-from-arc"></i>
+                <p class="flex" id="exit-time"></p>
+            </div>
+
+        </div>
+
+        <video id="videoElement" autoplay></video>
+    
+       
+        <img id="snapshotImage" style="display: none; width: 100%;" alt="Snapshot">
+    
+      
+        <div  class="cm-info-bx box-styling flex-coloum">
+            <div class="inf-bx">
+                
+
+                <div class="cm-usr-info flex-row">
+                    <div class="userName bx-an"></div>
+                    <div class="userId bx-an"></div>
+                </div>
+                <div class="cur-time flex-row">
+                    <i class="fi flex fi-rs-arrow-left-from-arc"></i>
+                    <h4 id="currentTime"></h4>
+                   
+                </div>
+                <div class="cur-date-cnt flex-row">
+                    <p class="crn-wek"></p>
+                    <p class="crn-date"></p>
+                </div>
+                <div class="lcn-cnt flex-row">
+                    <i class="fi flex fi-sr-marker"></i>
+                    <p id="location">Fetching...</p>
+                </div>
+
+
+                <div class="alrt-bx flex">
+                    <div class="icon-container">
+                    <i class="fi  flex fi-rr-alarm-clock"></i>
+                </div>
+                    <p>Only 20 Min Left for Halfday</p>
+                </div>
+            </div>
+
+            <div class="cam-btn-cnts flex-row">
+
+                <button id="camCancel"  class="button2">Back</button>
+
+                <button style="display: none;"  id="bcToDash" class="button1">Dashboard</button>
+
+
+                <button style="display: none;"  id="punchToDash" class="button1">Dashboard</button>
+
+
+
+                <button id="cam-stp" style="display: none;" class="button1">Punch In</button>
+                
+                <div style="background-color: #ffffff;" class="loader flex btn1">
+                    <div class="spinner"></div>
+                </div>
+
+                <button  style="display: none; background-color: #00e417; border: 1px solid #31e774;"  id="SnapWhts" class="button1">WhatsApp</button>
+
+
+
+                <button  style="display: none; background-color: #00e417; border: 1px solid #31e774;"  id="punchWhts" class="button1">WhatsApp</button>
+
+
+
+            </div>
+            
+          
+        </div>
+
+        
+
+
+    </div>
+    
+    <div id="qrScanner" style="display: none;" class="scaner-cont flex-coloum">
+       
+
+
+        <div class="scnr-heder flex-row">
+
+            <div  id="scnrBack" onclick="hideScanner()" class="user-prf-pic-cont flex ">
+           
+                <i class="fi flex fi-rr-angle-left"></i>
+              </div>
+
+              <h1>QR Scanner</h1>
+
+              <div id="scnrBtn" class="user-prf-pic-cont flex ">
+           
+                <i class="fi scnr-help-icn flex fi-rr-info"></i>
+              </div>
+
+        </div>
+
+        <div class="scanBox box-styling">
+            <video id="scanVideo" autoplay></video>
+            <canvas id="scanCanvas"></canvas>
+            <div id="scanner-overlay" class="scanner-overlay"></div>
+
+        </div>
+
+        <div id="qrContent"></div>
+        <audio id="soundEffect" src="/TFC-Connect/App/assets/level-up-191997.mp3"></audio>
+
+        <div class="scanInfo box-styling flex-coloum">
+            <div class="scanPerInfo flex-row">
+                <div class="user-prf-pic-cont flex">
+                    <img class="userImage" src="/TFC-Connect/App/assets/user.png " alt="">
+                  </div>
+                <div class="userName"></div>
+            </div>
+
+            <div class="sysInfo flex-coloum">
+                    <p class="flex-row">User Id:    <span class="userId">-----</span></p>
+                    <p class="flex-row">System Id:  <span id="systemId">-----</span></p>
+                    <p class="flex-row">Last Scan:  <span id="assignId">-----</span></p>
+                    <p class="flex-row">Last User:  <span id="lastUser">-----</span></p>
+            </div>
+
+
+        </div>
+
+       
+       
+
+    </div>
+
+
+    <div id="sidebar" class="sidebar  box-styling">
+        <div class="sideLogo flex-row">
+            <div class="logo flex">
+                <div class="logo-icon-box flex">
+                    <img src="https://lh3.googleusercontent.com/d/1ac7vZtb76pk7Xy3a3PtfrxYVPUOpF5Zd" alt="">
+                </div>
+                <h1>tfc<span>Connect</span></h1>
+                </div>
+                <div onclick="hideSideBar()"  class="user-prf-pic-cont flex sideBackBtn">
+                   
+                    <i class="fi flex fi-sr-angle-small-left"></i>
+                 </div>
+        </div>
+
+        <div class="sdScrlBdy">
+            <div class="prf-card box-styling flex-coloum">
+                <img class="userImage" src="/TFC-Connect/App/assets/user.png" alt="">
+                <h3 class="userName"></h3>
+                <div class="usrDtl flex-row">
+                    <p id="id=userId" class="userId"></p>
+                    <span></span>
+                    <p class="userType"></p>
+                </div>
+             </div>
+
+             <div class="prfInfo  box-styling">
+
+                <div class="info-card flex-row">
+                <i class="fi fi-rs-user"></i>
+                <h4 class="flex">Basic Details</h4>
+                <i class="fi dtl-dwn  fi-rr-angle-circle-down"></i>
+                <i style="display: none;" class="fi dtl-up fi-rr-angle-circle-up"></i>
+                </div>
+
+                <div class="info-detail box-styling">
+                </div>
+
+
+             </div>
+
+             <div class="prfInfo  box-styling">
+
+                <div class="info-card flex-row">
+                    <i class="fi fi-rr-phone-flip"></i>
+                <h4 class="flex">Contact Details</h4>
+                <i class="fi dtl-dwn  fi-rr-angle-circle-down"></i>
+                <i style="display: none;" class="fi dtl-up fi-rr-angle-circle-up"></i>
+                </div>
+
+                <div class="info-detail box-styling">
+
+                </div>
+
+
+             </div>
+
+             <div class="prfInfo  box-styling">
+
+                <div class="info-card flex-row">
+                    <i class="fi fi-rr-bank"></i>
+                <h4 class="flex">Bank Details</h4>
+                <i class="fi dtl-dwn  fi-rr-angle-circle-down"></i>
+                <i style="display: none;" class="fi dtl-up fi-rr-angle-circle-up"></i>
+                </div>
+
+                <div class="info-detail box-styling">
+
+                </div>
+
+
+             </div>
+
+             <div class="prfInfo  box-styling">
+
+                <div class="info-card flex-row">
+                    <i class="fi fi-rr-memo-circle-check"></i>
+                <h4 class="flex">My Documents</h4>
+                <i class="fi dtl-dwn  fi-rr-angle-circle-down"></i>
+                <i style="display: none;" class="fi dtl-up fi-rr-angle-circle-up"></i>
+                </div>
+
+                <div class="info-detail box-styling">
+
+                </div>
+
+
+             </div>
+
+             <div class="prfInfo prfbtn box-styling">
+
+                <div class="info-card flex-row">
+                    <i class="fi fi-rr-key"></i>
+                <h4 class="flex">Update password</h4>
+               
+                </div>
+
+                <div class="info-detail box-styling">
+
+                </div>
+
+
+             </div>
+
+             <div class="prfInfo prfbtn box-styling">
+
+                <div class="info-card  flex-row">
+                    <i class="fi fi-rr-laptop-mobile"></i>
+                <h4 class="flex">Logged account</h4>
+               
+                </div>
+
+                <div class="info-detail box-styling">
+
+                </div>
+
+
+             </div>
+             <div onclick="logout()" class="prfInfo lgtBtn box-styling">
+
+                <div class="info-card  flex-row">
+                    <i class="fi fi-rr-leave"></i>
+                <h4 class="flex">Logout</h4>
+               
+                </div>
+
+             </div>
+
+
+
+
+          
+
+             </div>
+
+       
+
+
+    </div>
+
+
+    <div id="brkAlertBox"   class="brk-alrt box flex-coloum">
+        <img src="/TFC-Connect/App/assets/underork.gif" alt="">
+        <h1>Break System </h1>
+        <p>Under Construction</p>
+        <button onclick="brkAlrt()"  id="hideAlrt" >Go Back</button>
+    </div>
+
+
+    <div  id="mailVerify" class="mail-verify flex-coloum">
+
+        <div onclick="hdPswdDp()" class="skip-mail flex">Skip Now</div>
+
+        <h1 >Let's Update</h1>
+        <p class="p-styling">Your credentials</p>
+        <p id="rstPswdMsg" class="p-styling">Enter the email associated with your account and we’ll send a Verification OTP.</p>
+       <img id="rstImg1" src="/TFC-Connect/App/assets/Mobile login-pana.png" alt="">
+       <img id="rstImg2" src="/TFC-Connect/App/assets/Enter OTP-cuate.png" style="display: none;" alt="">
+       <img id="rstImg3" src="/TFC-Connect/App/assets/Mobile encryption-pana.png" style="display: none;" alt="">
+
+
+       <form  id="pass-otp-verify-form" onsubmit="submitPassOtp(event)" class="login-form otp-verify">
+
+
+        <div class="input-group flex-coloum">
+            <label for="passMailId">Mail Id</label>
+
+            <input type="email" id="passMailId" name="passMailId" required="" style="border: 1.5px solid rgba(135, 115, 218, 0.557);">
+
+            <a href="#" onclick="sendPassOtp()" id="sendPassOtp">Send OTP</a>
+
+            <a id="timer-display-pass" style="display: none;"></a>
+
+        </div>
+
+        <div class="input-group otp flex-coloum">
+            <label for="password">Enter OTP</label>
+
+            <div class="otp-box flex-row">
+                <input type="text" id="otp-pass-1" name="passOtp" maxlength="1" required="" oninput="moveToNext(this, 'otp-pass-2')" onkeydown="moveToPrevious(event, this, 'otp-pass-1')" style="border: 1.5px solid rgba(135, 115, 218, 0.557);">
+                <input type="text" id="otp-pass-2" name="passOtp" maxlength="1" required="" oninput="moveToNext(this, 'otp-pass-3')" onkeydown="moveToPrevious(event, this, 'otp-pass-1')" style="border: 1.5px solid rgba(135, 115, 218, 0.557);">
+                <input type="text" id="otp-pass-3" name="passOtp" maxlength="1" required="" oninput="moveToNext(this, 'otp-pass-4')" onkeydown="moveToPrevious(event, this, 'otp-pass-2')" style="border: 1.5px solid rgba(135, 115, 218, 0.557);">
+                <input type="text" id="otp-pass-4" name="passOtp" maxlength="1" required="" oninput="moveToNext(this, 'otp-pass-5')" onkeydown="moveToPrevious(event, this, 'otp-pass-3')" style="border: 1.5px solid rgba(135, 115, 218, 0.557);">
+                <input type="text" id="otp-pass-5" name="passOtp" maxlength="1" required="" oninput="moveToNext(this, 'otp-pass-6')" onkeydown="moveToPrevious(event, this, 'otp-pass-4')" style="border: 1.5px solid rgba(135, 115, 218, 0.557);">
+                <input type="text" id="otp-pass-6" name="passOtp" maxlength="1" required="" onkeydown="moveToPrevious(event, this, 'otp-pass-5')" style="border: 1.5px solid rgba(135, 115, 218, 0.557);">
+            </div>
+        </div>
+
+        <div class="btn-cnt flex-coloum">
+            <div id="oploder" style="display: none;" class="spinner"></div>
+            <button type="submit" id="subBtn" class="login-button">Submit OTP</button> 
+        </div>
+
+        </form>
+
+
+        <form id="upd-pass-form" style="display: none;"  class="login-form upd-pass" onsubmit="submitNewPassword(event) ">
+
+            
+            <div class="input-group flex-coloum">
+                <label for="new-password">New Password</label>
+                <input type="password" id="new-password" name="newPassword" required>
+            </div>
+
+            <div style="margin-top: 20px;" class="input-group flex-coloum">
+                <label for="confirm-password">Confirm Password</label>
+                <input type="password" id="confirm-password" name="confirmPassword" required>
+            </div>
+
+            
+            <!-- Hidden fields to store userId and email -->
+            <input type="hidden" id="user-id" name="userId">
+            <input type="hidden" id="email" name="email">
+        
+          
+            
+            <div class="btn-cnt flex-coloum">
+                <div id="pasloder" style="display: none;" class="spinner"></div>
+                <button type="submit" id="pasBtn" class="login-button">Update Password</button> 
+            </div>
+      
+        </form>
+
+
+    </div>
+
+
+
+    <div  style="display: none;"  class="loc-info flex">
+        <div class="loc-alrt-dsp flex-coloum box-styling">           
+            <img src="/TFC-Connect/App/assets/d7ae0170d3d5ffcbaa7f02fdda387a3b.gif" alt="">
+            <h4 class="h-styling">Location Mismatch !</h4>
+            <p id="lastLoc"></p>
+            <p id="currentLoc"></p>
+            <p>Check Out Failed</p>
+            <p id="latitude"></p>
+            <p id="longitude"></p>
+            <button class="loc-btn">Go Back</button>
+        
+        </div>
+
+    </div>
+
+
+    <div style="display: none;" class="age-cal-cont">
+       
+
+    </div>
+
+
+    
+
+
+    <div id="allActivity" class="allActivity block " >
+        <div onclick="hideActivity()" class="alac-hd flex">
+            <div class="alact-back flex"> <i class="fi flex fi-sr-angle-small-left"></i></div>
+            <h2> All Activity </h2>
+        </div>
+
+        <div class="act-flt-cnt flex-row">
+
+            <div class="flex date-picker-container">
+                <!-- Start Date Picker -->
+                <div class="date-display-container flex  start-date">
+                    <span id="act-st-dt" class="selected-date-text start-date-text act-start-1">Select Date</span>
+                </div>
+                <span class="resetDate flex" style="display: none;">
+                    <i class="fi flex fi-rr-time-past"></i>
+                </span>
+            </div>
+            
+
+            <div class="flex date-picker-container">
+                <!-- current date picker -->
+                <div class="date-display-container flex current-date ">
+                    <span id="act-ed-dt" class="selected-date-text act-end-1 current-date-text">Select Date</span>
+                </div>
+                <span class="resetDate flex" style="display: none;"><i class="fi flex fi-rr-time-past"></i></span>
+            </div>
+
+
+
+             <!-- end date picker -->
+            <!-- <div class="flex date-picker-container">
+               
+                <div class="date-display-container flex end-date ">
+                    <span class="selected-date-text  end-date-text">Select Date</span>
+                </div>
+                <span class="resetDate flex" style="display: none;"><i class="fi flex fi-rr-time-past"></i></span>
+            </div> -->
+
+
+            
+            
+            <div class="flex-row custom-mnth-year-picker">
+                <select class="custom-date-mnth custom-month-dropdown"></select>
+            
+                <select class="custom-year-dropdown"></select>
+
+                <div class="mnyr-rst flex">
+                    <i class="fi flex fi-rr-time-past"></i>
+                </div>
+            
+                <span class="custom-mnth-year act-mnth-slt-1" style="position: absolute; z-index: 9999; top: 10px; display: none;"></span>
+            </div>
+            
+
+
+        </div>
+
+        
+        
+
+        <div id="allActCnt" class="activity-card">
+            
+        </div>
+
+    </div>
+
+
+
+    <div id="allAttnRecord" class="allAttnRecord allActivity">
+   
+        <div onclick="hideAttnRecord()" class="alac-hd flex">
+            <div class="alact-back flex"> <i class="fi flex fi-sr-angle-small-left"></i></div>
+            <h2> All Records </h2>
+        </div>
+
+        <div class="act-flt-cnt flex-row">
+
+            <div class="flex date-picker-container">
+                <!-- Start Date Picker -->
+                <div class="date-display-container flex start-date">
+                    <span id="rcd-st-dt" class="selected-date-text start-date-text act-start-2">Select Date</span>
+                </div>
+                <span class="resetDate flex" style="display: none;">
+                    <i class="fi flex fi-rr-time-past"></i>
+                </span>
+            </div>
+            
+
+            <div class="flex date-picker-container">
+                <!-- current date picker -->
+                <div class="date-display-container flex current-date ">
+                    <span id="rcd-ed-dt" class="selected-date-text act-end-2 current-date-text">Select Date</span>
+                </div>
+                <span class="resetDate flex" style="display: none;"><i class="fi flex fi-rr-time-past"></i></span>
+            </div>
+
+
+
+             <!-- end date picker -->
+            <!-- <div class="flex date-picker-container">
+               
+                <div class="date-display-container flex end-date ">
+                    <span class="selected-date-text  end-date-text">Select Date</span>
+                </div>
+                <span class="resetDate flex" style="display: none;"><i class="fi flex fi-rr-time-past"></i></span>
+            </div> -->
+
+
+            
+            
+            <div class="flex-row custom-mnth-year-picker">
+                <select class="custom-date-mnth custom-month-dropdown"></select>
+            
+                <select class="custom-year-dropdown"></select>
+
+                <div class="mnyr-rst flex">
+                    <i class="fi flex fi-rr-time-past"></i>
+                </div>
+            
+                <span id="allRcdMnthFltr" class="custom-mnth-year act-mnth-slt-2" style="position: absolute; z-index: 9999; top: 10px; display: none;"></span>
+            </div>
+            
+
+
+        </div>
+
+
+
+        
+        
+        <div class="mnth-rcrd  mnthrcrd-lst">
+            <div class="rcrd-brd flex-coloum box-styling">
+                <div class="tabel-container">
+                    <table class="td-ex-pol-table">
+
+    
+                        <div class="t-head td-ex-pol-thd-cont flex-row">
+                            <p class="p-styling td-ex-tbl-hd-frt ex-td-nam-frm" > Date</p>
+                            <p class="p-styling td-ex-tbl-hd-frt ex-td-cnt-frm" > Check In </p>
+                            <p class="p-styling ex-td-prm-frm td-ex-tbl-hd-frt" > Check Out</p>
+                            <p class="p-styling td-ex-tbl-hd-frt ex-td-sts-frm flex " > Status </p>
+                            <p class="p-styling td-ex-tbl-hd-frt p-icn-wdth" ><i class="fi fi-rr-copy-image flex"></i></p>
+                        </div>
+    
+    
+                        <div id="allAttnRecordList" class="tbl-bdy-cnt ">
+                             </div>
+                        
+    
+                        
+                        
+                        
+                    </table>
+                    </div>
+                        
+                   
+                </div>
+        </div>
+
+
+    
+    </div>
+
+    
+    <div class="calendar-container">
+        <div class="calendar-header-container">
+          <button class="calendar-header-button prev-month">&#9664;</button>
+          <span class="current-month-year"></span>
+          <button class="calendar-header-button next-month">&#9654;</button>
+        </div>
+        <div class="calendar-grid-container"></div>
+      </div>
+
+
+    <div class="mb-header flex-row ">
+        <div onclick="showSideBar()" class="user-prf-pic-cont flex">
+          <img class="userImage" src="/TFC-Connect/App/assets/user.png " alt="">
+        </div>
+        <div class="user-id-cont flex-coloum">
+          <h2 class="userName" id="userName"></h2>
+          <div class="user-disp flex-row">
+              <p class="userId" id="userId"></p>
+              <span></span>
+              <p class="userType" id="userType"></p>
+          </div>
+          
+
+        </div>
+        
+        <div  class="user-prf-pic-cont flex notifyBtn">
+          <!-- <i class="fa-solid icon-style flex fa-person-walking"></i> -->
+          <i class="fi flex fi-rr-bell-notification-social-media"></i>
+
+          <span style="display: none;" class="flex">19</span>
+        </div>
+        
+        <div class="user-prf-pic-cont flex logout-icon">
+            <div class="wIcn flex">
+           
+                <svg id="wifi-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="100" height="100">
+                    <path id="wifi-path1" class="wifi-path" d="M10,19c0-1.1,.9-2,2-2s2,.9,2,2-.9,2-2,2-2-.9-2-2Z" fill="#D3D3D3"/>
+                    <path id="wifi-path2" class="wifi-path" d="M18.67,14.35c.41-.38,.43-1.01,.05-1.41-1.73-1.87-4.18-2.94-6.72-2.94s-4.99,1.07-6.72,2.94c-.38,.4-.35,1.04,.05,1.41,.4,.38,1.04,.35,1.41-.05,1.35-1.46,3.27-2.29,5.26-2.29s3.9,.84,5.26,2.29c.2,.21,.46,.32,.73,.32,.24,0,.49-.09,.68-.27Z" fill="#D3D3D3"/>
+                    <path id="wifi-path3" class="wifi-path" d="M23.68,9.54c.41-.38,.43-1.01,.05-1.41-3.02-3.25-7.3-5.12-11.73-5.12S3.29,4.87,.27,8.12c-.38,.41-.35,1.04,.05,1.41,.4,.38,1.04,.35,1.41-.05,2.64-2.85,6.38-4.48,10.27-4.48s7.62,1.63,10.27,4.48c.2,.21,.46,.32,.73,.32,.24,0,.49-.09,.68-.27Z" fill="#D3D3D3"/>
+                </svg>
+            </div>
+    
+            <i class="fi flex fi-rr-leave" style="display: none;"></i>
+          </div>
+
+
+        <div id="scnrBtn" style="display: none;" onclick="showScanner()" class="user-prf-pic-cont flex ">
+           
+            <i class="fi flex fi-rr-qr-scan"></i>
+          </div>
+
+
+
+    </div>
+
+              <!-- navbar -->
+   <div id="navBar" style="display: none;" class="menu-card navbar box-styling ">
+         
+                <div class="menu-opn flex menu-card">
+                    <ul id="menu-opn">
+                        <li value="dashbord-widget" class="active">
+                            <span class="active"></span>
+                            <i class="fi fi-rr-home"></i>
+                          
+                            </li>
+                        <li value="attendance-widget">
+                            <span></span>
+                            <i class="fi fi-rr-fingerprint"></i>
+                            </li>
+                        <li value="payment-grid-widget">
+                            <span></span>
+                            <i class="fi fi-rr-folder-open"></i>
+                            </li>
+                        <li value="report-widget">
+                            <span></span>
+                            <i class="fi fi-rr-chart-pie-alt"></i>
+                            </li>
+                        <li value="wallet-widget">
+                            <span></span>
+                            <i class="fi fi-rr-wallet-income"></i>
+                            </li>
+                    </ul>
+                </div>
+           
+   </div>
+
+
+   
+   <div class="mainBody">
+
+        
+    <!-- welcome note -->
+       <div class="welcome-box-cont flex-coloum">
+
+<p>
+<i id="wlcHand" class="fi fi-sr-hand-wave"></i>
+Welcome Back, <span class="firstName"></span>
+</p>
+<div class="dashboard-title-container flex-row">
+<h2 class="h-styling h-sm-sty" id="dashbord">Dashboard</h2>
+
+
+
+</div>
+       </div>
+       
+       <div class="dashbord-widget widget">
+       
+            <div class="dly-atn-bx flex-row box-styling" id="dateContainer">
+                <img id="clnLnImg" src="/TFC-Connect/App/assets/loading.gif" alt="">
+            </div>
+
+            <div class="atn-mrk-bx block">
+                <div class="atn-dsl-card box-styling">
+                    <img src="/TFC-Connect/App/assets/selfi-pic.gif" alt="">
+                </div>
+        
+                <div id="atn-switch" class="atn-switch  box-styling">
+                    
+                    <div style="display: none;" id="resetCont" class="chkn-switch-slider resetCont flex-row">
+                        <p>Attendance Marked, Update Soon...</p>
+                        <span class="flex"><i class="fi flex fi-rr-file-recycle"></i></span>
+                    </div>
+
+
+                    <div style="display: none;" class=" chkn-switch-slider loc-update flex-row" id="locUpdCnt">
+                        <i class="fi flex fi-rr-location-arrow"></i>
+                        <p>Location Off, Turn on & Reload!</p>
+                      
+                      </div>
+
+                    
+                    <div id="checkDotCont" class="dots-container flex">
+                        <div class="dot"></div>
+                        <div class="dot"></div>
+                        <div class="dot"></div>
+                      </div>
+
+                    <div  style="display: none;" class="chkn-switch-slider" id="chknBtn">
+                        <div class="chkn-switch flex" id="slider">
+                            <p id="sliderText" class="flex">Check In <i class="fi fi-rs-arrow-left-from-arc"></i></p>
+        
+                        </div>
+                    </div>
+                    
+                    <div style="display: none;" id="actBtn" class="chkn-switch-slider btn-cnt flex-row">
+                        <button onclick="showAlrt()" id="brkBtn" style="background-color: #ffcd06;" class="btn1 flex">
+                            <i class="fi fi-rs-stopwatch"></i>Take Break</button>
+                        <button id="checkOutBtn" onclick="generateCheckoutDataAndSend()" class="btn1 flex"><i class="fi fi-rs-arrow-left-from-arc"></i> Check Out</button>
+                        
+        
+                    </div>
+
+
+                </div>
+                
+              
+                
+        
+            </div>
+            
+
+            <div class="daily-atn block">
+
+                <div class="title flex-row">
+                 <h3 class="h-styling h-sm-sty" >Attendance</h3>
+
+                  <div class="flex date-picker-container">
+                    <div class="date-display-container flex">
+                      <span id="checkInOutDate" class="selected-date-text">Select Date</span>
+                    </div>
+                   
+                    <span class="resetDate flex" onclick="resetToCurrentDate()"   style="display: none;" ><i class="fi flex fi-rr-time-past"></i></span>
+                  </div>
+  
+                </div>
+              
+
+
+                
+                <div id="noRecd" style="display: none;" class="box-styling no_recd_img_bx">
+                    <img src="/TFC-Connect/App/assets/5928293_2953962.jpg" alt="">
+                </div>
+
+                <div id="crd-bx-cnt" class="crd-bx-cnt">
+        
+                <div class="card-box flex-row">
+                    <div class="card box-styling">
+                        <div class="bsc-title flex-row">
+                            <div class="icon-bx flex">
+                                <i class="fi fi-rs-arrow-left-from-arc"></i>
+                            </div>
+                            <p>Check In</p>
+                        </div>
+                        <h2 id="checkInTime" class="checkIn">--:--</h2>
+                        <p  id="checkInStatus" class="checkInStatus">------</p>
+                       
+                    </div>
+                    <div class="card box-styling">
+                        <div class="bsc-title flex-row">
+                            <div class="icon-bx flex">
+                                <i class="fi ot-r fi-rs-arrow-left-from-arc"></i>
+                            </div>
+                            <p>Check Out</p>
+                        </div>
+                        <h2 id="checkOutTime"  class="checkOut">--:--</h2>
+                        <p id="checkOutStatus" class="checkOutStatus">------</p>
+                       
+                    </div>
+            
+                </div>
+                <div class="card-box flex-row">
+                    <div class="card box-styling">
+                        <div class="bsc-title flex-row">
+                            <div class="icon-bx flex">
+                                <i class="fi ot-r fi-rr-clock-nine"></i>
+                            </div>
+                            <p>Break Time</p>
+                        </div>
+                        <h2 class="breakTiming">--:--</h2>
+                        <p class="nBreak">------</p>
+                       
+                        <img src="/TFC-Connect/App/assets/brkImg.gif" alt="">
+
+                    </div>
+                    <div class="card bx-anm box-styling">
+                        <div class="bsc-title flex-row">
+                            <div class="icon-bx flex">
+                                <i class="fi bx-an fi-sr-bolt"></i>
+                            </div>
+                            <p>Status</p>
+                        </div>
+                        <h2 id="finalStatus" class="finalStatus">-----</h2>
+                        <p id="finalDecision" class="finalDecision">------</p>
+                       
+                    </div>
+            
+                </div>
+
+            </div>
+        
+        
+            </div>
+
+
+            <div id="daily-atn" style="display: none;"  class="daily-atn atn-activity block">
+
+                <div class="title flex-row">
+                 <h3 class="h-styling h-sm-sty" >Activity</h3>
+                 <p id="vewAllAct" onclick="showActivity()" class="vall">View All</p>
+                </div>
+        
+             <div id="activityContainer" class="activity-card activityContainer">
+
+             </div>
+        
+              
+        
+        
+            </div>
+
+
+            <div class="block quick-link-bx">
+
+                <div class="title flex-row">
+                    <h3 class="h-styling h-sm-sty" >Quick Links</h3>
+                   </div>
+
+                <div class="quick-links flex-row">
+                    <div class="qk-clk age-cal flex-coloum">
+                        <div class="qk-img-bx flex box-styling">
+                            <i class="fi qk-ic flex fi-rr-calculator"></i>
+                        </div>
+                        <p class="qk-img-p">
+                            Age Calculator
+                        </p>
+                    </div>
+                   
+                </div>
+
+
+            </div>
+
+            <div class="daily-atn atn-summary block">
+
+                <div class="title flex-row">
+                    <h3 class="h-styling h-sm-sty" >Summary</h3>
+
+             <div class="flex-row custom-mnth-year-picker">
+                <select class="custom-date-mnth  flex custom-month-dropdown"></select>
+            
+                <select class="custom-year-dropdown flex"></select>
+
+                <div class="mnyr-rst flex">
+                    <i class="fi flex fi-rr-time-past"></i>
+                </div>
+            
+                <span id="ttl-mnt-cnt" class="custom-mnth-year act-mnth-slt" style="position: absolute; z-index: 9999; top: 10px; display: none;"></span>
+            </div>
+            
+
+
+                   </div>
+        
+                   
+        
+                   <div class="atn-rcrd-card flex-coloum box-styling">
+                    
+                   
+                    <div class="atn-ovr-vw flex-row">
+                      
+                        <div class="ovr-vw-bar flex">
+                            <div class="progress-container flex">
+                                
+                                <svg class="progress-svg" width="160" height="160">
+                                    
+                                    <circle class="bg-circle" style="   stroke: #e0e0e05a;" cx="80" cy="80" />
+                                    <circle class="progress-circle" cx="80" cy="80" />
+                                  </svg>
+                                  
+                                <div class="progress-text" id="progress-text">0%</div>
+        
+                                <div class="chld-bar flex">
+                                    <svg width="120" height="120" viewBox="0 0 200 200">
+                                        <circle class="circle-background" cx="100" cy="100" />
+                                        <circle class="circle-foreground segment1" cx="100" cy="100" />
+                                        <circle class="circle-foreground segment2" cx="100" cy="100" />
+                                        <circle class="circle-foreground segment3" cx="100" cy="100" />
+                                        <circle class="circle-foreground segment4" cx="100" cy="100" />
+                                      </svg>
+                                      
+                                </div>
+                                </div>
+        
+                              
+                        </div>
+
+                        <div class="ovr-vw-dta flex">
+                            <div class="flex-coloum mnth-cout">
+                                <h3 id="ttl-mnth-day">00</h3>
+                                <p>Days</p>
+                            </div>
+                            <div class="ln"></div>
+                            <div class="col-dta">
+                                <p id="Working-count" class="col-val">00 Days</p>
+                                <p  class="col-titl">Working Days</p>
+                                <p id="holiday-count" class="col-val">00 Days</p>
+                                <p class="col-titl">Holidays</p>
+        
+                            </div>
+                        </div>
+                    </div>
+        
+        
+                    <div class="atn-brk-dwn  flex-coloum">
+        
+                        <div class="cvr-dv">
+                            <img src="/TFC-Connect/App/assets/Untitled design (2).png" alt="">
+                        </div>
+        
+                       <div class="atn-prm-cnt flex-row">
+                        <div class="atn-sc-cnt on-time  flex">
+                            <div class="sng-ov-box flex">
+                                <div class="progress-ring">
+                                    <span class="progress-value">0%</span>
+                                    <svg>
+                                      <circle class="bg" cx="30" cy="30" ></circle>
+                                      <circle class="progress" cx="30" cy="30"  r="25" ></circle>
+                                    </svg>
+                                  </div>
+                                  
+                            </div>
+                            <div class="data-ov-box flex-coloum">
+                               <h4 id="ttl_prsnt" style="color: #31e774;">00 Days</h4>
+                               <p>On Time</p>
+                            </div>
+                        </div>
+                        <div class="atn-sc-cnt late flex">
+                            <div class="sng-ov-box flex">
+                                <div class="progress-ring">
+                                    <span class="progress-value">0%</span>
+                                    <svg>
+                                      <circle class="bg" cx="30" cy="30" r="25"></circle>
+                                      <circle class="progress" cx="30" cy="30" r="25"></circle>
+                                    </svg>
+                                  </div>
+                                  
+                            </div>
+                            <div class="data-ov-box flex-coloum">
+                               <h4 id="ttl_late" style="color: #ffcd06;">00 Days</h4>
+                               <p>Late</p>
+                            </div>
+                        </div>
+                
+        
+                </div>
+                <div class="atn-prm-cnt flex-row">
+                    <div class="atn-sc-cnt half-day flex">
+                        <div class="sng-ov-box flex">
+                            <div class="progress-ring">
+                                <span class="progress-value">0%</span>
+                                <svg>
+                                  <circle class="bg" cx="30" cy="30" r="25"></circle>
+                                  <circle class="progress" cx="30" cy="30" r="25"></circle>
+                                </svg>
+                              </div>
+                              
+                        </div>
+                        <div class="data-ov-box flex-coloum">
+                           <h4 id="ttl_hday" style="color:#ffa033 ;">00 Days</h4>
+                           <p>Half Days</p>
+                        </div>
+                    </div>
+                    <div class="atn-sc-cnt absent flex">
+                        <div class="sng-ov-box flex">
+                            <div class="progress-ring">
+                                <span class="progress-value">0%</span>
+                                <svg>
+                                  <circle class="bg" cx="30" cy="30" r="25"></circle>
+                                  <circle class="progress" cx="30" cy="30" r="25"></circle>
+                                </svg>
+                              </div>
+                              
+                        </div>
+                        <div class="data-ov-box flex-coloum">
+                           <h4 id="ttl_absnt" style="color: #ff4000;">00 Days</h4>
+                           <p>Absent</p>
+                        </div>
+                    </div>
+            
+        
+            </div>
+        
+        
+            
+        </div>
+        
+         
+          </div>
+        
+            </div>
+
+            <div class="sal-disp">
+
+            <div class="dp-cnt box-styling  ">
+
+                
+                <div class="carousel">
+
+                    <div class="slide">
+                        <div class="atn-dp-sld1 flex">
+                            <img src="/TFC-Connect/App/assets/4e0ca92d3326e2648c2f6538ff56ba24.gif" alt="">
+        
+                            <div class="sld-cvr flex-coloum">
+                              <h5 style="margin-top: 20px;">Conversion</h5>
+                        <div class="sld-cvr-dt flex-row">
+                                <div class="cnv-bx flex-coloum">
+                                    <h6 id="ttl_prsnt_days">00 Days</h6>
+                                    <p >Prsent</p>
+                                </div>
+                                <div class="cnv-bx flex-coloum">
+                                    <h6 id="ttl_half_days">00 Days</h6>
+                                    <p>Halfday</p>
+                                </div>
+                                <div class="cnv-bx flex-coloum">
+                                    <h6 id="ttl_abst_days">00 Days</h6>
+                                    <p>Absent</p>
+                                </div>
+                               
+                              </div>
+                            </div>
+                        </div>
+                       
+                    </div>
+
+
+                    <div class="slide">
+                        <div class="atn-dp-sld1 flex">
+                            <img src="/TFC-Connect/App/assets/anm1.gif" alt="">
+        
+                            <div class="sld-cvr sld-cvr2 flex-coloum">
+                              <h5>Salary Payout</h5>
+                              <h4 id="ttl_sal_pay">₹ 00.00</h4>
+                            </div>
+                        </div>
+                       
+                    </div>
+
+                    <div class="slide">
+                        <div class="atn-dp-sld1 flex">
+                            <img src="/TFC-Connect/App/assets/d6e5b96c5f902d38deb49905785d30e1.jpg" alt="">
+        
+                            <div class="sld-cvr sld-cvr2 sld-cvr3 flex-coloum">
+                              <h5>Incentive Payout</h5>
+                              <h4 id="ttl_Inc_pay">₹ 00.00</h4>
+                            </div>
+                        </div>
+                       
+                    </div>
+
+
+
+                    <div class="slide">
+                        <div class="atn-dp-sld1 flex">
+                            <img src="/TFC-Connect/App/assets/c0e29421325ca3618e5131e38c6d1adc (1).jpg" alt="">
+        
+                            <div class="sld-cvr cvr-clr sld-cvr2 flex-coloum">
+                              <h5>Total Countable days</h5>
+                              <h4 id="ttl_attn_days">00 Days</h4>
+                            </div>
+                        </div>
+                       
+                    </div>
+ 
+                  
+                   
+                </div>
+            </div>
+            <!-- <button onclick="changeFlag('isJustify')">Toggle Justify</button>
+            <button onclick="changeFlag('isApproval')">Toggle Approval</button>
+            <button onclick="changeFlag('isVerification')">Toggle Verification</button> -->
+
+
+            <div class="progress-wrapper justify-bar flex-coloum" data-key="justPercentData">
+               
+                <div class="progress-details flex-row">
+                    <span class="progress-status">Justification</span>
+                    <span class="progress-percentage">0%</span>
+                </div>
+                <div class="progress-bar-container">
+                    <div class="progress-bar-inner"></div>
+                </div>
+            </div>
+
+          
+            <div class="cl-updt flex ">
+
+
+                <div class="toggle-container" data-color="rgb(137, 58, 222)" data-isCaller="no" data-flag="isJustify">
+                    <span class="toggle-icon flex">
+                        <i class="fi swtchNo  flex fi-bs-check"></i>
+                        <i class="fi swtchYes flex fi-br-cross-small"></i>
+                    </span>
+                    <p>Justification</p>
+                   
+                    
+                </div>
+
+                <div class="toggle-container" data-color="rgb(250, 192, 0)" data-isCaller="no" data-flag="isPaidLeave">
+                    <span class="toggle-icon">
+                        <i class="fi swtchNo  flex fi-bs-check"></i>
+                        <i class="fi swtchYes flex fi-br-cross-small"></i>
+                    </span>
+                    <p>C.L Applied</p>
+                   
+                    
+                </div>
+            </div>
+        </div>
+
+
+
+
+            <div class="block flex-coloum cal-cont">
+                <div class="title flex-row">
+                    <h3 class="h-styling h-sm-sty" >Calender</h3>
+                    <div class="flex-row custom-mnth-year-picker">
+                        <select class="custom-date-mnth custom-month-dropdown"></select>
+                    
+                        <select class="custom-year-dropdown"></select>
+        
+                        <div class="mnyr-rst flex">
+                            <i class="fi flex fi-rr-time-past"></i>
+                        </div>
+                    
+                        <span id="crt-atn-clndr" class="custom-mnth-year act-mnth-slt" style="position: absolute; z-index: 9999; top: 10px; display: none;"></span>
+                    </div>
+                    
+                   </div>
+        
+                   <div class="calender flex box-styling" id="calendar"></div>
+        
+        
+            </div>
+
+
+            <div class="block mnth-rcrd">
+                <div class="title flex-row">
+                    <h3 class="h-styling h-sm-sty" >All Record</h3>
+                    <p onclick="showAttnRecord()" class="vall">View All</p>
+                </div>
+
+                <div class="rcrd-brd flex-coloum box-styling">
+                    <div class="tabel-container">
+                        <table class="td-ex-pol-table">
+        
+                            <div class="mnth-dt-filt flex-row">
+                                <div class="mnth-btn btn-lt flex" onclick="changeMonth(-1)">
+                                    <i class="fi fi-rr-angle-small-left flex"></i>
+                                </div>
+                                <p id="month-display"></p>
+                                <div class="mnth-btn btn-rt flex" onclick="changeMonth(1)" >
+                                    <i style="transform: rotateX(180deg);"  class="fi fi-rr-angle-small-right flex"></i>
+                                </div>
+                            </div>
+                            
+        
+                            <div class="t-head td-ex-pol-thd-cont flex-row">
+                                <p class="p-styling td-ex-tbl-hd-frt ex-td-nam-frm" > Date</p>
+                                <p class="p-styling td-ex-tbl-hd-frt ex-td-cnt-frm" > Check In </p>
+                                <p class="p-styling ex-td-prm-frm td-ex-tbl-hd-frt" > Check Out</p>
+                                <p class="p-styling td-ex-tbl-hd-frt ex-td-sts-frm flex " > Status </p>
+                                <p class="p-styling td-ex-tbl-hd-frt p-icn-wdth" ><i class="fi fi-rr-copy-image flex"></i></p>
+                            </div>
+        
+        
+                            <div id="tbl-bdy-cnt" class="tbl-bdy-cnt ">
+                                 </div>
+                            
+        
+                            
+                            
+                            
+                        </table>
+                        </div>
+                            
+                       
+                    </div>
+
+
+            </div>
+
+
+
+
+
+
+
+
+            
+    <div class="block flex-coloum end-msg">
+        <h1>One Platform</h1>
+        <h1>Infinite Posiblites</h1>
+        <div class="rl-ln"></div>
+        <h5 class="flex">The Financial Craft <span id="anm-icn" ><i  class="fi flex fi-sr-heart"></i></span></h5>
+    </div>
+
+
+
+
+
+
+
+
+
+
+
+       </div>
+       
+       <div class="attendance-widget widget">
+       
+       </div>
+       
+       <div class="payment-grid-widget widget">
+       
+       </div>
+       
+       <div class="report-widget widget">
+       
+       </div>
+       
+       <div class="wallet-widget widget">
+       
+       </div>
+       
+
+
+
+
+
+
+
+
+</div>
+
+
+
+
+        
+
+
+
+    <!-- Log Details -->
+
+    <div id="logDetails" style="display: none;" class="menu-card flex-coloum">
+        <p>All Loged Details</p>
+        <div id="device-opn" class="device-opn">
+        </div>
+    </div>
+
+
+   
+    <!-- <script src="/TFC-Connect/TFC-Connect/App/js/user.js"></script> -->
+    <script src="https://apis.mappls.com/advancedmaps/api/0f7164fef128c884f8b713e8de4241c5/map_sdk?v=3.0&layer=vector"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/0.4.1/html2canvas.min.js"></script>
+
+    <script src="https://kit.fontawesome.com/ff989e0e08.js" crossorigin="anonymous"></script>
+    <script src="https://cdn.jsdelivr.net/npm/jsqr/dist/jsQR.js"></script>
+    <script src="/TFC-Connect/App/mobile/js/user.js"></script>
+    <script src="/TFC-Connect/App/mobile/js/atten.js"></script>
+    <!-- <script src="/TFC-Connect/App/mobile/js/qrScanner.js"></script> -->
+    <script src="/TFC-Connect/App/mobile/js/signal.js"></script>
+    <script src="/TFC-Connect/App/mobile/js/resetPass.js"></script>
+
+    
+</body>
+</html>
