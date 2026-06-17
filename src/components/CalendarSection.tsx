@@ -95,7 +95,7 @@ export default function CalendarSection() {
   };
 
   return (
-    <div style={{ padding: '0 24px', marginTop: '10px' }}>
+    <div style={{ padding: '0 24px', marginTop: '10px', marginBottom: '10px' }}>
       {/* Header Row */}
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
         <h2 style={{ color: '#fff', fontSize: '20px', fontWeight: '600', margin: 0 }}>Calendar</h2>
