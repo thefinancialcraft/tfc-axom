@@ -3,15 +3,45 @@ import Greeting from '@/components/Greeting';
 import DateBanner from '@/components/DateBanner';
 import HeroCard from '@/components/HeroCard';
 import CheckoutSlider from '@/components/CheckoutSlider';
+import CarouselCards from '@/components/CarouselCards';
+import AttendanceHeader from '@/components/AttendanceHeader';
+import ActivitySection from '@/components/ActivitySection';
+import SummarySection from '@/components/SummarySection';
+import CalendarSection from '@/components/CalendarSection';
+import AllRecordsSection from '@/components/AllRecordsSection';
 
 export default function Home() {
+  const row1 = [
+    { title: 'Check-in', image: '/chkin.png', time: '12:00', status: 'ON TIME' },
+    { title: 'Check-out', image: '/chkout.png', time: '18:00', status: 'ON TIME' }
+  ];
+
+  const row2 = [
+    { title: 'Break Time', image: '/brktime.png', message: 'Coming soon', flipImage: true, marginLeft: '-60px' },
+    { title: 'Status', image: '/fnlst.png', message: 'On time' }
+  ];
+
   return (
-    <main style={{ position: 'relative', minHeight: '100vh', width: '100%' }}>
+    <main style={{ paddingBottom: '100px', backgroundColor: 'var(--color-bg)' }}>
       <LogoutButton />
       <Greeting />
       <DateBanner />
       <HeroCard />
       <CheckoutSlider />
+      
+      <div style={{ marginTop: '32px' }}>
+        <AttendanceHeader />
+
+        <CarouselCards cards={row1} />
+        <div style={{ marginTop: '-40px' }}> {/* Negative margin to reduce the gap between rows */}
+          <CarouselCards cards={row2} />
+        </div>
+      </div>
+      
+      <ActivitySection />
+      <SummarySection />
+      <CalendarSection />
+      <AllRecordsSection />
     </main>
   );
 }
