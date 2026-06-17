@@ -8,6 +8,8 @@ export interface CardData {
   message?: string;
   flipImage?: boolean;
   marginLeft?: string;
+  scale?: number;
+  marginTop?: string;
 }
 
 interface Props {
@@ -24,6 +26,7 @@ export default function CarouselCards({ cards = [] }: Props) {
         style={{
           display: 'flex',
           overflowX: 'auto',
+          overflowY: 'hidden', // Added to prevent vertical scrolling
           scrollSnapType: 'x mandatory',
           scrollPaddingLeft: '24px', // Aligns the snap to the padding
           scrollPaddingRight: '24px',
@@ -45,11 +48,18 @@ export default function CarouselCards({ cards = [] }: Props) {
             justifyContent: 'flex-start',
             boxShadow: '0 4px 15px rgba(0,0,0,0.1)',
             position: 'relative',
-            clipPath: 'inset(-200px -200px 0 0)',
+            clipPath: 'inset(-200px -200px 0 -200px)', // Allow top, left, right overflow but clip bottom
           }}>
             {/* Image */}
             <div style={{ flexShrink: 0, marginLeft: card.marginLeft || '-50px', zIndex: 2, position: 'relative' }}>
-              <img src={card.image} alt={card.title} style={{ width: 'auto', height: '200px', objectFit: 'contain', transform: card.flipImage ? 'scaleX(-1)' : 'none', filter: 'grayscale(100%)' }} />
+              <img src={card.image} alt={card.title} style={{ 
+                width: 'auto', 
+                height: '180px', 
+                objectFit: 'contain', 
+                transform: `${card.flipImage ? 'scaleX(-1)' : ''} ${card.scale ? `scale(${card.scale})` : ''}`.trim() || 'none', 
+                filter: 'grayscale(100%)',
+                marginTop: card.marginTop || '0',
+              }} />
             </div>
 
             {/* Top Right Text */}

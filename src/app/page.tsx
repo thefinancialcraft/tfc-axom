@@ -9,6 +9,7 @@ import ActivitySection from '@/components/ActivitySection';
 import SummarySection from '@/components/SummarySection';
 import CalendarSection from '@/components/CalendarSection';
 import AllRecordsSection from '@/components/AllRecordsSection';
+import Footer from '@/components/Footer';
 
 export default function Home() {
   const row1 = [
@@ -18,7 +19,7 @@ export default function Home() {
 
   const row2 = [
     { title: 'Break Time', image: '/brktime.png', message: 'Coming soon', flipImage: true, marginLeft: '-60px' },
-    { title: 'Status', image: '/fnlst.png', message: 'On time' }
+    { title: 'Status', image: '/fnlst.png', message: 'On time', scale: 1.3, marginTop: '30px' }
   ];
 
   return (
@@ -42,6 +43,7 @@ export default function Home() {
       <SummarySection />
       <CalendarSection />
       <AllRecordsSection />
+      <Footer />
     </main>
   );
 }
