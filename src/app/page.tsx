@@ -23,7 +23,8 @@ export default function Home() {
   ];
 
   return (
-    <main style={{ paddingBottom: '100px', backgroundColor: 'var(--color-bg)' }}>
+    <main style={{ position: 'relative', overflowX: 'hidden', paddingBottom: '100px', backgroundColor: 'var(--color-bg)' }}>
+      <div className="top-right-pattern"></div>
       <LogoutButton />
       <Greeting />
       <DateBanner />
@@ -44,6 +45,7 @@ export default function Home() {
       <CalendarSection />
       <AllRecordsSection />
       <Footer />
+      <div className="bottom-left-pattern"></div>
     </main>
   );
 }

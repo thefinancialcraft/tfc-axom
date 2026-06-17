@@ -141,8 +141,10 @@ export default function SummarySection() {
           gap: '24px',
           padding: '10px',
           position: 'relative',
-          boxSizing: 'border-box'
+          boxSizing: 'border-box',
+          overflow: 'hidden'
         }}>
+          <div className="top-right-pattern" style={{ opacity: 0.15, right: 'auto', left: '-20px', top: '-20px', zIndex: 0 }}></div>
           {/* 31 Days Badge */}
           <div style={{
             position: 'absolute',
@@ -244,15 +246,18 @@ export default function SummarySection() {
           alignItems: 'center',
           justifyContent: 'space-around',
           padding: '20px 10px',
-          boxSizing: 'border-box'
+          boxSizing: 'border-box',
+          position: 'relative',
+          overflow: 'hidden'
         }}>
+          <div className="top-right-pattern" style={{ opacity: 0.15, right: 'auto', left: '-20px', top: '-20px', zIndex: 0 }}></div>
           {[
             { label: 'P', value: 24, max: 31, color: '#4ADE80' },
             { label: 'L', value: 3, max: 31, color: '#FFE76B' },
             { label: 'H', value: 4, max: 31, color: '#FF9800' },
             { label: 'A', value: 0, max: 31, color: '#FD6579' }
           ].map((bar, i) => (
-            <div key={i} style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', height: '100%', justifyContent: 'flex-end', gap: '8px' }}>
+            <div key={i} style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', height: '100%', justifyContent: 'flex-end', gap: '8px', position: 'relative', zIndex: 1 }}>
               <span style={{ color: '#fff', fontSize: '13px', fontWeight: '600' }}>
                 {bar.value.toString().padStart(2, '0')}
               </span>
@@ -305,8 +310,12 @@ export default function SummarySection() {
         backgroundColor: '#363636', 
         borderRadius: '24px', 
         position: 'relative',
-        height: '85px'
+        height: '85px',
       }}>
+        {/* We use a wrapper with strict overflow to clip the pattern, allowing the image to overflow the parent */}
+        <div style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, borderRadius: '24px', overflow: 'hidden', zIndex: 0 }}>
+          <div className="top-right-pattern" style={{ opacity: 0.15, right: 'auto', left: '-20px', top: '-20px' }}></div>
+        </div>
         <div style={{
           position: 'absolute',
           top: 0, left: 0, right: 0, bottom: 0,
@@ -378,10 +387,13 @@ export default function SummarySection() {
             display: 'flex', 
             flexDirection: 'column', 
             alignItems: 'center',
-            justifyContent: 'center'
+            justifyContent: 'center',
+            position: 'relative',
+            overflow: 'hidden'
           }}>
-            <span style={{ color: stat.color, fontSize: '18px', fontWeight: 'bold' }}>{stat.value}</span>
-            <span style={{ color: 'rgba(255,255,255,0.6)', fontSize: '11px', marginTop: '4px', whiteSpace: 'nowrap' }}>{stat.label}</span>
+            <div className="top-right-pattern" style={{ opacity: 0.15, right: 'auto', left: '-10px', top: '-10px', zIndex: 0 }}></div>
+            <span style={{ color: stat.color, fontSize: '18px', fontWeight: 'bold', zIndex: 1, position: 'relative' }}>{stat.value}</span>
+            <span style={{ color: 'rgba(255,255,255,0.6)', fontSize: '11px', marginTop: '4px', whiteSpace: 'nowrap', zIndex: 1, position: 'relative' }}>{stat.label}</span>
           </div>
         ))}
       </div>

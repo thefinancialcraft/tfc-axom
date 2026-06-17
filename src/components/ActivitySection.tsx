@@ -31,55 +31,60 @@ const CameraIcon = () => (
 
 export default function ActivitySection() {
   return (
-    <div style={{ marginTop: '32px', padding: '0 24px' }}>
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-        <h2 style={{ color: '#fff', fontSize: '20px', fontWeight: '600', margin: 0 }}>Activity</h2>
-        <button style={{
-          backgroundColor: '#fff',
-          color: '#000',
-          border: 'none',
-          padding: '6px 16px',
-          borderRadius: '20px',
-          fontSize: '13px',
-          fontWeight: '600',
-          cursor: 'pointer',
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center'
-        }}>
-          View All
-        </button>
-      </div>
-      
-      <div style={{ marginTop: '20px', display: 'flex', flexDirection: 'column', gap: '12px' }}>
-       
+    <div style={{ position: 'relative', overflow: 'hidden', marginTop: '32px', padding: '0 24px' }}>
+      {/* Background Pattern */}
+      <div className="top-right-pattern" style={{ opacity: 0.2, right: 'auto', left: '50%', transform: 'translateX(-50%)', top: '-50px' }}></div>
 
-        {/* Activity Items */}
-        {activities.map((item, idx) => (
-          <div key={idx} style={{ 
-            display: 'flex', 
-            alignItems: 'center', 
-            justifyContent: 'space-between',
-            padding: '16px',
-            backgroundColor: 'rgba(255, 255, 255, 0.04)',
-            border: '1px solid rgba(255, 255, 255, 0.06)',
-            borderRadius: '16px',
-            transition: 'background-color 0.2s ease',
+      <div style={{ position: 'relative', zIndex: 1 }}>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+          <h2 style={{ color: '#fff', fontSize: '20px', fontWeight: '600', margin: 0 }}>Activity</h2>
+          <button style={{
+            backgroundColor: '#fff',
+            color: '#000',
+            border: 'none',
+            padding: '6px 16px',
+            borderRadius: '20px',
+            fontSize: '13px',
+            fontWeight: '600',
+            cursor: 'pointer',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center'
           }}>
-            <div style={{ width: '10%', color: 'rgba(255, 255, 255, 0.6)', fontSize: '14px', fontWeight: '600' }}>
-              {item.id}
+            View All
+          </button>
+        </div>
+        
+        <div style={{ marginTop: '20px', display: 'flex', flexDirection: 'column', gap: '12px' }}>
+         
+
+          {/* Activity Items */}
+          {activities.map((item, idx) => (
+            <div key={idx} style={{ 
+              display: 'flex', 
+              alignItems: 'center', 
+              justifyContent: 'space-between',
+              padding: '16px',
+              backgroundColor: 'rgba(255, 255, 255, 0.04)',
+              border: '1px solid rgba(255, 255, 255, 0.06)',
+              borderRadius: '16px',
+              transition: 'background-color 0.2s ease',
+            }}>
+              <div style={{ width: '10%', color: 'rgba(255, 255, 255, 0.6)', fontSize: '14px', fontWeight: '600' }}>
+                {item.id}
+              </div>
+              <div style={{ width: '40%', color: '#fff', fontSize: '15px', fontWeight: '500', letterSpacing: '0.5px' }}>
+                {item.token}
+              </div>
+              <div style={{ width: '20%', display: 'flex', justifyContent: 'center', color: 'rgba(255, 255, 255, 0.8)' }}>
+                {item.icon === 'fingerprint' ? <FingerprintIcon /> : <CameraIcon />}
+              </div>
+              <div style={{ width: '30%', textAlign: 'right', color: '#fff', fontSize: '14px', fontWeight: '500' }}>
+                {item.time}
+              </div>
             </div>
-            <div style={{ width: '40%', color: '#fff', fontSize: '15px', fontWeight: '500', letterSpacing: '0.5px' }}>
-              {item.token}
-            </div>
-            <div style={{ width: '20%', display: 'flex', justifyContent: 'center', color: 'rgba(255, 255, 255, 0.8)' }}>
-              {item.icon === 'fingerprint' ? <FingerprintIcon /> : <CameraIcon />}
-            </div>
-            <div style={{ width: '30%', textAlign: 'right', color: '#fff', fontSize: '14px', fontWeight: '500' }}>
-              {item.time}
-            </div>
-          </div>
-        ))}
+          ))}
+        </div>
       </div>
     </div>
   );

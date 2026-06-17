@@ -86,6 +86,9 @@ export default function HeroCard() {
           overflow: 'hidden',
           position: 'relative',
         }}>
+          {/* Background Pattern */}
+          <div className="top-right-pattern" style={{ opacity: 0.15, right: 'auto', left: '-20px', top: '-20px' }}></div>
+
           <div style={{
             width: '150px',
             height: '200px',
@@ -188,9 +191,11 @@ export default function HeroCard() {
           flexDirection: 'column',
           padding: '24px',
           boxSizing: 'border-box',
-          overflow: 'hidden'
+          overflow: 'hidden',
+          position: 'relative'
         }}>
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
+          <div className="top-right-pattern" style={{ opacity: 0.15, right: 'auto', left: '-20px', top: '-20px', zIndex: 0 }}></div>
+          <div style={{ position: 'relative', zIndex: 1, display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
             <h3 style={{ color: '#fff', fontSize: '16px', fontWeight: '600', margin: 0 }}>Attendance Performance</h3>
             <span style={{ color: '#4ADE80', fontSize: '12px', fontWeight: '600', padding: '4px 10px', backgroundColor: 'rgba(74, 222, 128, 0.1)', borderRadius: '12px' }}>+12%</span>
           </div>

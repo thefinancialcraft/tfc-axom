@@ -394,3 +394,52 @@ body {
   -webkit-text-fill-color: transparent;
   animation: shimmer 4s linear infinite;
 }
+
+.top-right-pattern {
+  position: absolute;
+  top: -50px;
+  right: -50px;
+  width: 250px;
+  height: 250px;
+  background: repeating-linear-gradient(
+    135deg,
+    transparent,
+    transparent 80px,
+    rgba(255, 255, 255, 0.3) 80px,
+    rgba(255, 255, 255, 0.3) 100px,
+    transparent 100px,
+    transparent 125px,
+    rgba(255, 255, 255, 0.2) 125px,
+    rgba(255, 255, 255, 0.2) 130px
+  );
+  mask-image: linear-gradient(to bottom, rgba(0,0,0,0.8) 0%, rgba(0,0,0,0) 80%);
+  -webkit-mask-image: linear-gradient(to bottom, rgba(0,0,0,0.8) 0%, rgba(0,0,0,0) 80%);
+  pointer-events: none;
+  z-index: 0;
+  opacity: 0.8;
+}
+
+.bottom-left-pattern {
+  position: absolute;
+  bottom: -50px;
+  left: -50px;
+  width: 250px;
+  height: 250px;
+  background: repeating-linear-gradient(
+    135deg,
+    transparent,
+    transparent 80px,
+    rgba(255, 255, 255, 0.3) 80px,
+    rgba(255, 255, 255, 0.3) 100px,
+    transparent 100px,
+    transparent 125px,
+    rgba(255, 255, 255, 0.2) 125px,
+    rgba(255, 255, 255, 0.2) 130px
+  );
+  mask-image: linear-gradient(to bottom, rgba(0,0,0,0.8) 0%, rgba(0,0,0,0) 80%);
+  -webkit-mask-image: linear-gradient(to bottom, rgba(0,0,0,0.8) 0%, rgba(0,0,0,0) 80%);
+  transform: rotate(180deg);
+  pointer-events: none;
+  z-index: 0;
+  opacity: 0.8;
+}

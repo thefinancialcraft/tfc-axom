@@ -50,6 +50,20 @@ export default function CarouselCards({ cards = [] }: Props) {
             position: 'relative',
             clipPath: 'inset(-200px -200px 0 -200px)', // Allow top, left, right overflow but clip bottom
           }}>
+            {/* Card Background Pattern Wrapper */}
+            <div style={{
+              position: 'absolute',
+              top: 0,
+              left: 0,
+              right: 0,
+              bottom: 0,
+              borderRadius: '24px',
+              overflow: 'hidden',
+              zIndex: 0
+            }}>
+              <div className="top-right-pattern" style={{ opacity: 0.15, right: 'auto', left: '-20px', top: '-20px' }}></div>
+            </div>
+
             {/* Image */}
             <div style={{ flexShrink: 0, marginLeft: card.marginLeft || '-50px', zIndex: 2, position: 'relative' }}>
               <img src={card.image} alt={card.title} style={{ 
