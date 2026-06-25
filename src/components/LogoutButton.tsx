@@ -1,13 +1,27 @@
 'use client';
 
-import React from 'react';
+import React, { useState } from 'react';
+import { useRouter } from 'next/navigation';
+import { supabase } from '@/lib/supabase';
 
 export default function LogoutButton() {
+  const router = useRouter();
+  const [isLoggingOut, setIsLoggingOut] = useState(false);
+
+  const handleLogout = async () => {
+    setIsLoggingOut(true);
+    await supabase.auth.signOut();
+    router.replace('/login');
+  };
+
   return (
     <div style={{ position: 'absolute', top: '24px', right: '24px', zIndex: 50 }}>
       <button 
         className="logout-btn-sleek"
         title="Logout"
+        onClick={handleLogout}
+        disabled={isLoggingOut}
+        style={{ opacity: isLoggingOut ? 0.7 : 1, cursor: isLoggingOut ? 'wait' : 'pointer' }}
       >
         <svg 
           xmlns="http://www.w3.org/2000/svg" 

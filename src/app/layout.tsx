@@ -14,7 +14,11 @@ export default function RootLayout({
   return (
     <html lang="en" suppressHydrationWarning>
       <body>
-        {children}
+        <div className="mobile-frame-container">
+          <div className="mobile-frame">
+            {children}
+          </div>
+        </div>
       </body>
     </html>
   );
