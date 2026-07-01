@@ -10,8 +10,7 @@ import SummarySection from '@/components/SummarySection';
 import CalendarSection from '@/components/CalendarSection';
 import AllRecordsSection from '@/components/AllRecordsSection';
 import Footer from '@/components/Footer';
-import AuthHashCleaner from '@/components/AuthHashCleaner';
-
+import ProfileCheck from '@/components/ProfileCheck';
 export default function Home() {
   const row1 = [
     { title: 'Check-in', image: '/chkin.png', time: '12:00', status: 'ON TIME' },
@@ -25,7 +24,7 @@ export default function Home() {
 
   return (
     <main style={{ position: 'relative', overflowX: 'hidden', paddingBottom: '100px', backgroundColor: 'var(--color-bg)' }}>
-      <AuthHashCleaner />
+      <ProfileCheck />
       <div className="top-right-pattern"></div>
       <LogoutButton />
       <Greeting />
