@@ -38,6 +38,10 @@
 body {
   background-color: var(--color-black); /* Default to black from new style */
   color: var(--color-white); /* Default to white from new style */
+  -webkit-overflow-scrolling: touch;
+}
+html {
+  scroll-behavior: smooth;
 }
 
 /* Flex Utilities */
@@ -469,6 +473,8 @@ body {
   background-color: var(--color-black);
   position: relative;
   overflow-x: hidden;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
 }
 
 @media (min-width: 431px) {
