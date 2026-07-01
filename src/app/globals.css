@@ -40,12 +40,6 @@ body {
   color: var(--color-white); /* Default to white from new style */
 }
 
-/* Anti-flicker for OAuth redirect */
-.hide-dashboard #dashboard-main {
-  opacity: 0 !important;
-  pointer-events: none !important;
-}
-
 /* Flex Utilities */
 .flex {
   display: flex;

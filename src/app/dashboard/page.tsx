@@ -10,7 +10,8 @@ import SummarySection from '@/components/SummarySection';
 import CalendarSection from '@/components/CalendarSection';
 import AllRecordsSection from '@/components/AllRecordsSection';
 import Footer from '@/components/Footer';
-import ProfileCheck from '@/components/ProfileCheck';
+import AuthHashCleaner from '@/components/AuthHashCleaner';
+
 export default function Home() {
   const row1 = [
     { title: 'Check-in', image: '/chkin.png', time: '12:00', status: 'ON TIME' },
@@ -23,18 +24,8 @@ export default function Home() {
   ];
 
   return (
-    <>
-      <script
-        dangerouslySetInnerHTML={{
-          __html: `
-            if (window.location.hash.includes('access_token')) {
-              document.body.classList.add('hide-dashboard');
-            }
-          `
-        }}
-      />
-      <main id="dashboard-main" style={{ position: 'relative', overflowX: 'hidden', paddingBottom: '100px', backgroundColor: 'var(--color-bg)' }}>
-      <ProfileCheck />
+    <main style={{ position: 'relative', overflowX: 'hidden', paddingBottom: '100px', backgroundColor: 'var(--color-bg)' }}>
+      <AuthHashCleaner />
       <div className="top-right-pattern"></div>
       <LogoutButton />
       <Greeting />
@@ -57,7 +48,6 @@ export default function Home() {
       <AllRecordsSection />
       <Footer />
       <div className="bottom-left-pattern"></div>
-      </main>
-    </>
+    </main>
   );
 }

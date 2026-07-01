@@ -16,14 +16,11 @@ export default function ProfileCheck() {
         const urlParams = new URLSearchParams(window.location.search);
         const hashParams = new URLSearchParams(window.location.hash.substring(1));
         
-        if (urlParams.get('error') === 'access_denied' || hashParams.get('error') === 'access_denied' || urlParams.get('error') === 'account_not_found') {
+        if (urlParams.get('error') === 'access_denied' || hashParams.get('error') === 'access_denied') {
           // Clear the ugly URL
           router.replace('/login');
           setShowPopup(true);
           setChecking(false);
-          if (typeof document !== 'undefined') {
-            document.body.classList.remove('hide-dashboard');
-          }
           return;
         }
       }
@@ -34,9 +31,6 @@ export default function ProfileCheck() {
         if (!session) {
           // No session, just stop checking
           setChecking(false);
-          if (typeof document !== 'undefined') {
-            document.body.classList.remove('hide-dashboard');
-          }
           return;
         }
 
@@ -55,7 +49,12 @@ export default function ProfileCheck() {
             console.error('Failed to delete ghost account:', rpcError);
           }
           
-          // 2. Sign them out
+          // Clear the ugly URL forcefully
+          if (typeof window !== 'undefined') {
+            window.history.replaceState(null, '', '/login');
+          }
+
+          // 2. Sign them out and show popup
           await supabase.auth.signOut();
           // Force clear local storage tokens just in case backend deletion caused signOut to fail locally
           if (typeof window !== 'undefined') {
@@ -66,17 +65,12 @@ export default function ProfileCheck() {
             }
           }
           
-          // Redirect to login with error parameter to trigger popup on a clean URL
-          router.replace('/login?error=account_not_found');
-          return;
+          setShowPopup(true);
         } else {
           // Profile found: redirect to dashboard
           router.replace('/dashboard');
         }
         setChecking(false);
-        if (typeof document !== 'undefined') {
-          document.body.classList.remove('hide-dashboard');
-        }
       }, 500); // 500ms delay to allow supabase to parse hash
     }
 
@@ -118,10 +112,7 @@ export default function ProfileCheck() {
             You don't have an active profile registered with us. Please create an account or contact your Admin to get access.
           </p>
           <button 
-            onClick={() => {
-              setShowPopup(false);
-              router.replace('/login');
-            }}
+            onClick={() => setShowPopup(false)}
             style={{
               padding: '14px 24px',
               backgroundColor: '#1C1C1C',
