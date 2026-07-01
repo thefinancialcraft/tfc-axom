@@ -112,7 +112,10 @@ export default function ProfileCheck() {
             You don't have an active profile registered with us. Please create an account or contact your Admin to get access.
           </p>
           <button 
-            onClick={() => setShowPopup(false)}
+            onClick={() => {
+              setShowPopup(false);
+              router.replace('/login');
+            }}
             style={{
               padding: '14px 24px',
               backgroundColor: '#1C1C1C',
