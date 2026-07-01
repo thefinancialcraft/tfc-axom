@@ -16,7 +16,7 @@ export default function ProfileCheck() {
         const urlParams = new URLSearchParams(window.location.search);
         const hashParams = new URLSearchParams(window.location.hash.substring(1));
         
-        if (urlParams.get('error') === 'access_denied' || hashParams.get('error') === 'access_denied') {
+        if (urlParams.get('error') === 'access_denied' || hashParams.get('error') === 'access_denied' || urlParams.get('error') === 'account_not_found') {
           // Clear the ugly URL
           router.replace('/login');
           setShowPopup(true);
@@ -55,12 +55,7 @@ export default function ProfileCheck() {
             console.error('Failed to delete ghost account:', rpcError);
           }
           
-          // Clear the ugly URL forcefully
-          if (typeof window !== 'undefined') {
-            window.history.replaceState(null, '', '/login');
-          }
-
-          // 2. Sign them out and show popup
+          // 2. Sign them out
           await supabase.auth.signOut();
           // Force clear local storage tokens just in case backend deletion caused signOut to fail locally
           if (typeof window !== 'undefined') {
@@ -71,7 +66,9 @@ export default function ProfileCheck() {
             }
           }
           
-          setShowPopup(true);
+          // Redirect to login with error parameter to trigger popup on a clean URL
+          router.replace('/login?error=account_not_found');
+          return;
         } else {
           // Profile found: redirect to dashboard
           router.replace('/dashboard');
