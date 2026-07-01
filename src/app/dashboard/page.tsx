@@ -23,7 +23,17 @@ export default function Home() {
   ];
 
   return (
-    <main style={{ position: 'relative', overflowX: 'hidden', paddingBottom: '100px', backgroundColor: 'var(--color-bg)' }}>
+    <>
+      <script
+        dangerouslySetInnerHTML={{
+          __html: `
+            if (window.location.hash.includes('access_token')) {
+              document.body.classList.add('hide-dashboard');
+            }
+          `
+        }}
+      />
+      <main id="dashboard-main" style={{ position: 'relative', overflowX: 'hidden', paddingBottom: '100px', backgroundColor: 'var(--color-bg)' }}>
       <ProfileCheck />
       <div className="top-right-pattern"></div>
       <LogoutButton />
@@ -47,6 +57,7 @@ export default function Home() {
       <AllRecordsSection />
       <Footer />
       <div className="bottom-left-pattern"></div>
-    </main>
+      </main>
+    </>
   );
 }

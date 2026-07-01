@@ -21,6 +21,9 @@ export default function ProfileCheck() {
           router.replace('/login');
           setShowPopup(true);
           setChecking(false);
+          if (typeof document !== 'undefined') {
+            document.body.classList.remove('hide-dashboard');
+          }
           return;
         }
       }
@@ -31,6 +34,9 @@ export default function ProfileCheck() {
         if (!session) {
           // No session, just stop checking
           setChecking(false);
+          if (typeof document !== 'undefined') {
+            document.body.classList.remove('hide-dashboard');
+          }
           return;
         }
 
@@ -71,6 +77,9 @@ export default function ProfileCheck() {
           router.replace('/dashboard');
         }
         setChecking(false);
+        if (typeof document !== 'undefined') {
+          document.body.classList.remove('hide-dashboard');
+        }
       }, 500); // 500ms delay to allow supabase to parse hash
     }
 
