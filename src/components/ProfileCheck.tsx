@@ -8,6 +8,11 @@ export default function ProfileCheck() {
   const router = useRouter();
   const [showPopup, setShowPopup] = useState(false);
   const [checking, setChecking] = useState(true);
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
 
   useEffect(() => {
     async function checkProfile() {
@@ -78,7 +83,7 @@ export default function ProfileCheck() {
   }, [router]);
 
   if (checking) {
-    if (typeof window !== 'undefined' && (window.location.hash.includes('access_token') || window.location.search.includes('error='))) {
+    if (mounted && typeof window !== 'undefined' && (window.location.hash.includes('access_token') || window.location.search.includes('error='))) {
       return (
         <div style={{ position: 'fixed', inset: 0, backgroundColor: '#000', zIndex: 9999, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
           <div style={{ color: '#fff', fontSize: '16px', fontWeight: '500' }}>Verifying your account...</div>
