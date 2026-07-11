@@ -42,40 +42,37 @@ export default function ProfileCheck() {
         // We have a session, check user_profiles
         const { data, error } = await supabase
           .from('user_profiles')
-          .select('user_id')
+          .select('user_id, profile_complete')
           .eq('user_id', session.user.id)
           .maybeSingle();
 
         if (!data) {
           // Profile not found: 
-          // 1. Delete their newly created auth.users entry from Supabase backend
+          // ... 
           const { error: rpcError } = await supabase.rpc('delete_self_account');
-          if (rpcError) {
-            console.error('Failed to delete ghost account:', rpcError);
-          }
+          if (rpcError) console.error('Failed to delete ghost account:', rpcError);
           
-          // Clear the ugly URL forcefully
           if (typeof window !== 'undefined') {
             window.history.replaceState(null, '', '/login');
           }
-
-          // 2. Sign them out and show popup
           await supabase.auth.signOut();
-          // Force clear local storage tokens just in case backend deletion caused signOut to fail locally
           if (typeof window !== 'undefined') {
             for (let key in localStorage) {
-              if (key.startsWith('sb-')) {
-                localStorage.removeItem(key);
-              }
+              if (key.startsWith('sb-')) localStorage.removeItem(key);
             }
           }
-          
           setShowPopup(true);
+          setChecking(false);
         } else {
-          // Profile found: redirect to dashboard
-          router.replace('/dashboard');
+          // Profile found: check if complete
+          if (data.profile_complete === true) {
+            router.replace('/dashboard');
+            return; // Do not hide splash screen while redirecting
+          } else {
+            router.replace('/complete-profile');
+            return; // Do not hide splash screen while redirecting
+          }
         }
-        setChecking(false);
       }, 500); // 500ms delay to allow supabase to parse hash
     }
 
@@ -83,13 +80,42 @@ export default function ProfileCheck() {
   }, [router]);
 
   if (checking) {
-    if (mounted && typeof window !== 'undefined' && (window.location.hash.includes('access_token') || window.location.search.includes('error='))) {
-      return (
-        <div style={{ position: 'fixed', inset: 0, backgroundColor: '#000', zIndex: 9999, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-          <div style={{ color: '#fff', fontSize: '16px', fontWeight: '500' }}>Verifying your account...</div>
+    return (
+      <div style={{ 
+        position: 'fixed', inset: 0, backgroundColor: '#0F0F0F', zIndex: 9999, 
+        display: 'flex', alignItems: 'center', justifyContent: 'center',
+        animation: 'splash-fade-in 0.8s ease-out', overflow: 'hidden'
+      }}>
+        <style>{`
+          @keyframes splash-fade-in {
+            0% { opacity: 0; }
+            100% { opacity: 1; }
+          }
+          @keyframes splash-scale-up {
+            0% { transform: scale(0.8); opacity: 0; }
+            100% { transform: scale(1); opacity: 1; }
+          }
+        `}</style>
+        
+        {/* Background Elements */}
+        <div className="top-right-pattern" style={{ opacity: 0.3 }}></div>
+        <div className="bottom-left-pattern" style={{ opacity: 0.3 }}></div>
+        <div className="star-layer stars-1"></div>
+        <div className="star-layer stars-2"></div>
+        <div className="star-layer stars-3"></div>
+        <div className="star-layer stars-4"></div>
+        <div className="star-layer stars-5"></div>
+        <div className="star-layer stars-6"></div>
+
+        {/* Center Logo & Spinner */}
+        <div style={{ position: 'relative', width: '120px', height: '120px', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 10, animation: 'splash-scale-up 1s cubic-bezier(0.16, 1, 0.3, 1)' }}>
+          <svg className="snake-spinner" viewBox="25 25 50 50" style={{ position: 'absolute', width: '120px', height: '120px' }}>
+            <circle className="snake-spinner-circle" cx="50" cy="50" r="20" fill="none" strokeWidth="1.5" strokeMiterlimit="10" />
+          </svg>
+          <img src="/logo.png" alt="Axom" style={{ width: '50px', height: 'auto', filter: 'brightness(0) invert(1)' }} />
         </div>
-      );
-    }
+      </div>
+    );
   }
 
   if (showPopup) {

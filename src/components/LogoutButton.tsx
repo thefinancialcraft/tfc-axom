@@ -4,7 +4,7 @@ import React, { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { supabase } from '@/lib/supabase';
 
-export default function LogoutButton() {
+export default function LogoutButton({ variant = 'light' }: { variant?: 'light' | 'dark' }) {
   const router = useRouter();
   const [isLoggingOut, setIsLoggingOut] = useState(false);
 
@@ -17,7 +17,7 @@ export default function LogoutButton() {
   return (
     <div style={{ position: 'absolute', top: '24px', right: '24px', zIndex: 50 }}>
       <button 
-        className="logout-btn-sleek"
+        className={`logout-btn-sleek ${variant === 'dark' ? 'logout-btn-dark' : ''}`}
         title="Logout"
         onClick={handleLogout}
         disabled={isLoggingOut}

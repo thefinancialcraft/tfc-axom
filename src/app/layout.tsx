@@ -25,9 +25,18 @@ export default function RootLayout({
   return (
     <html lang="en" suppressHydrationWarning>
       <body className={lufga.className}>
-        <div className="mobile-frame-container">
-          <div className="mobile-frame">
-            {children}
+        <div className="desktop-layout-wrapper">
+          <div className="desktop-side-content">
+            <div className="desktop-image-wrapper">
+              <img src="/gt.png" alt="GT Logo" className="desktop-side-image" />
+            </div>
+            <h1>TFC Axom</h1>
+            <p>Welcome to TFC Axom. The most reliable and efficient way to manage your tasks and attendance. Experience seamless integration and modern design tailored just for you.</p>
+          </div>
+          <div className="mobile-frame-container">
+            <div className="mobile-frame">
+              {children}
+            </div>
           </div>
         </div>
       </body>
