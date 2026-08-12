@@ -54,7 +54,7 @@ export default function ProfileCreator() {
   if (creating) {
     return (
       <div style={{ position: 'fixed', inset: 0, backgroundColor: '#000', zIndex: 9999, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-        <div style={{ color: '#fff', fontSize: '16px', fontWeight: '500' }}>Setting up your profile...</div>
+        <div style={{ color: 'var(--text-color)', fontSize: '16px', fontWeight: '500' }}>Setting up your profile...</div>
       </div>
     );
   }

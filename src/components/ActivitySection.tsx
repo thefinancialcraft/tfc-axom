@@ -2,10 +2,10 @@
 import React from 'react';
 
 const activities = [
-  { id: '#1', token: '2349887', icon: 'fingerprint', time: '12:00 AM' },
-  { id: '#2', token: '2349888', icon: 'camera', time: '12:00 AM' },
-  { id: '#3', token: '2349889', icon: 'fingerprint', time: '01:30 PM' },
-  { id: '#4', token: '2349890', icon: 'camera', time: '06:00 PM' },
+  { id: '#1', token: '2349887', icon: 'fingerprint', time: '12:00 AM', date: '12 July', day: 'Monday' },
+  { id: '#2', token: '2349888', icon: 'camera', time: '12:00 AM', date: '12 July', day: 'Monday' },
+  { id: '#3', token: '2349889', icon: 'fingerprint', time: '01:30 PM', date: '11 July', day: 'Sunday' },
+  { id: '#4', token: '2349890', icon: 'camera', time: '06:00 PM', date: '11 July', day: 'Sunday' },
 ];
 
 const FingerprintIcon = () => (
@@ -37,9 +37,9 @@ export default function ActivitySection() {
 
       <div style={{ position: 'relative', zIndex: 1 }}>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-          <h2 style={{ color: '#fff', fontSize: '20px', fontWeight: '600', margin: 0 }}>Activity</h2>
+          <h2 style={{ color: 'var(--text-color)', fontSize: '20px', fontWeight: '600', margin: 0 }}>Activity</h2>
           <button style={{
-            backgroundColor: '#fff',
+            backgroundColor: 'var(--text-color)',
             color: '#000',
             border: 'none',
             padding: '6px 16px',
@@ -60,26 +60,41 @@ export default function ActivitySection() {
 
           {/* Activity Items */}
           {activities.map((item, idx) => (
-            <div key={idx} style={{ 
+            <div key={idx} className="activity-row" style={{ 
               display: 'flex', 
               alignItems: 'center', 
-              justifyContent: 'space-between',
               padding: '16px',
               backgroundColor: 'rgba(255, 255, 255, 0.04)',
               border: '1px solid rgba(255, 255, 255, 0.06)',
               borderRadius: '16px',
               transition: 'background-color 0.2s ease',
             }}>
-              <div style={{ width: '10%', color: 'rgba(255, 255, 255, 0.6)', fontSize: '14px', fontWeight: '600' }}>
+              <div style={{ flex: '0 0 10%', color: 'rgba(255, 255, 255, 0.6)', fontSize: '14px', fontWeight: '600' }}>
                 {item.id}
               </div>
-              <div style={{ width: '40%', color: '#fff', fontSize: '15px', fontWeight: '500', letterSpacing: '0.5px' }}>
+              <div style={{ flex: '1', color: 'var(--text-color)', fontSize: '15px', fontWeight: '500', letterSpacing: '0.5px' }}>
                 {item.token}
               </div>
-              <div style={{ width: '20%', display: 'flex', justifyContent: 'center', color: 'rgba(255, 255, 255, 0.8)' }}>
-                {item.icon === 'fingerprint' ? <FingerprintIcon /> : <CameraIcon />}
+              <div className="desktop-only" style={{ flex: '0 0 15%', color: 'rgba(255,255,255,0.7)', fontSize: '14px', fontWeight: '500' }}>
+                {item.date}
               </div>
-              <div style={{ width: '30%', textAlign: 'right', color: '#fff', fontSize: '14px', fontWeight: '500' }}>
+              <div className="desktop-only" style={{ flex: '0 0 10%', color: 'rgba(255,255,255,0.7)', fontSize: '14px', fontWeight: '500' }}>
+                {item.day}
+              </div>
+              <div style={{ flex: '0 0 20%', display: 'flex', alignItems: 'center', justifyContent: 'flex-start', gap: '8px', color: 'rgba(255, 255, 255, 0.8)' }}>
+                {item.icon === 'fingerprint' ? (
+                  <>
+                    <FingerprintIcon />
+                    <span className="desktop-only-inline" style={{ fontSize: '13px', whiteSpace: 'nowrap' }}>By Fingerprint</span>
+                  </>
+                ) : (
+                  <>
+                    <CameraIcon />
+                    <span className="desktop-only-inline" style={{ fontSize: '13px', whiteSpace: 'nowrap' }}>By Selfie</span>
+                  </>
+                )}
+              </div>
+              <div style={{ flex: '0 0 20%', textAlign: 'right', color: 'var(--text-color)', fontSize: '14px', fontWeight: '500' }}>
                 {item.time}
               </div>
             </div>

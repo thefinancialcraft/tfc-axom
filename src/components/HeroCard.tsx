@@ -1,5 +1,7 @@
 'use client';
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
+import MeteorShower from './MeteorShower';
+import { getUserProfile, getCachedProfile } from '@/lib/profile';
 
 const getLast6Days = () => {
   const days = [];
@@ -19,6 +21,22 @@ const getLast6Days = () => {
 
 export default function HeroCard() {
   const [currentSlide, setCurrentSlide] = useState(0);
+
+  const cached = getCachedProfile();
+  const initialPic = cached?.profile?.profile_pic_url || null;
+  const [profilePic, setProfilePic] = useState<string | null>(initialPic);
+
+  useEffect(() => {
+    if (profilePic) return;
+
+    async function loadProfile() {
+      const res = await getUserProfile();
+      if (res && res.profile && res.profile.profile_pic_url) {
+        setProfilePic(res.profile.profile_pic_url);
+      }
+    }
+    loadProfile();
+  }, [profilePic]);
 
   // 6 months dummy data
   const performanceData = [
@@ -51,34 +69,18 @@ export default function HeroCard() {
   return (
     <div style={{ margin: '20px 24px' }}>
       <div 
-        className="herocard-slider"
+        className="hero-slider-container"
         onScroll={(e) => {
           const scrollLeft = e.currentTarget.scrollLeft;
           const width = e.currentTarget.clientWidth;
           const newIndex = Math.round(scrollLeft / width);
           if (newIndex !== currentSlide) setCurrentSlide(newIndex);
         }}
-        style={{
-          display: 'flex',
-          overflowX: 'auto',
-          overflowY: 'hidden',
-          scrollSnapType: 'x mandatory',
-          gap: '16px',
-          paddingBottom: '8px'
-        }}
       >
-        <style>
-          {`
-            .herocard-slider::-webkit-scrollbar { display: none; }
-            .herocard-slider { -ms-overflow-style: none; scrollbar-width: none; }
-          `}
-        </style>
 
         {/* Slide 1: Original Hero Card */}
-        <div style={{
-          flex: '0 0 100%',
-          scrollSnapAlign: 'start',
-          height: '220px',
+        <div className="hero-slide" style={{
+          height: '260px',
           backgroundColor: '#363636',
           borderRadius: '24px',
           display: 'flex',
@@ -88,10 +90,12 @@ export default function HeroCard() {
         }}>
           {/* Background Pattern */}
           <div className="top-right-pattern" style={{ opacity: 0.15, right: 'auto', left: '-20px', top: '-20px' }}></div>
+          
+          <MeteorShower />
 
           <div style={{
-            width: '150px',
-            height: '200px',
+            width: '180px',
+            height: '240px',
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'center',
@@ -99,19 +103,20 @@ export default function HeroCard() {
             overflow:'hidden',
           }}>
             <img 
-              src="/gg.png" 
-              alt="gg" 
+              src={profilePic || "/dm-hr.png"} 
+              alt="Avatar" 
               style={{ 
-                height: '280px', 
+                height: '260px', 
                 width: 'auto', 
                 objectFit: 'contain', 
                 filter: 'grayscale(100%)', 
-                transform: 'translateY(20px)',
-                WebkitMaskImage: 'linear-gradient(to bottom, black 20%, transparent 85%)',
-                maskImage: 'linear-gradient(to bottom, black 20%, transparent 85%)'
+                transform: 'translateY(-15px)',
+                WebkitMaskImage: 'linear-gradient(to bottom, black 30%, transparent 95%)',
+                maskImage: 'linear-gradient(to bottom, black 30%, transparent 95%)'
               }} 
             />
           </div>
+          
 
           {/* Right Side Info: User ID & Role */}
           <div style={{
@@ -166,7 +171,7 @@ export default function HeroCard() {
                 alignItems: 'center',
                 justifyContent: 'center'
               }}>
-                <span style={{ fontSize: '14px', fontWeight: '500', lineHeight: '1', color: '#ffffff' }}>{item.date}</span>
+                <span style={{ fontSize: '14px', fontWeight: '500', lineHeight: '1', color: 'var(--text-color)' }}>{item.date}</span>
                 <span style={{ fontSize: '10px', fontWeight: '400', lineHeight: '1', marginTop: '4px', color: 'rgba(255, 255, 255, 0.6)' }}>{item.month}</span>
                 <span style={{
                   marginTop: '6px',
@@ -181,10 +186,8 @@ export default function HeroCard() {
         </div>
 
         {/* Slide 2: Line Graph */}
-        <div style={{
-          flex: '0 0 100%',
-          scrollSnapAlign: 'start',
-          height: '220px',
+        <div className="hero-slide" style={{
+          height: '260px',
           backgroundColor: '#363636',
           borderRadius: '24px',
           display: 'flex',
@@ -195,12 +198,13 @@ export default function HeroCard() {
           position: 'relative'
         }}>
           <div className="top-right-pattern" style={{ opacity: 0.15, right: 'auto', left: '-20px', top: '-20px', zIndex: 0 }}></div>
+          <MeteorShower />
           <div style={{ position: 'relative', zIndex: 1, display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
-            <h3 style={{ color: '#fff', fontSize: '16px', fontWeight: '600', margin: 0 }}>Attendance Performance</h3>
+            <h3 style={{ color: 'var(--text-color)', fontSize: '16px', fontWeight: '600', margin: 0 }}>Attendance Performance</h3>
             <span style={{ color: '#4ADE80', fontSize: '12px', fontWeight: '600', padding: '4px 10px', backgroundColor: 'rgba(74, 222, 128, 0.1)', borderRadius: '12px' }}>+12%</span>
           </div>
           
-          <div style={{ flex: 1, position: 'relative' }}>
+          <div style={{ flex: 1, minHeight: 0, position: 'relative', display: 'flex', flexDirection: 'column', justifyContent: 'flex-end' }}>
             <svg width="100%" height="100%" viewBox="0 0 300 120" preserveAspectRatio="none" style={{ overflow: 'visible' }}>
               <defs>
                 <linearGradient id="graphGradient" x1="0" y1="0" x2="0" y2="1">
@@ -240,7 +244,7 @@ export default function HeroCard() {
       </div>
 
       {/* Pagination Dots */}
-      <div style={{ display: 'flex', justifyContent: 'center', gap: '8px', marginTop: '12px' }}>
+      <div className="hero-pagination">
         {[0, 1].map(index => (
           <div 
             key={index}

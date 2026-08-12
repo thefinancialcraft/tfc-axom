@@ -38,142 +38,117 @@ export default function BankingInfoForm({
   }, []);
 
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', width: '100%', padding: '0 0 40px 0', boxSizing: 'border-box', alignItems: 'stretch' }}>
+    <div className="responsive-form-container" style={{ display: 'flex', flexDirection: 'column', width: '100%', boxSizing: 'border-box', alignItems: 'stretch' }}>
       
       <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-start', marginBottom: '40px' }}>
         <img src="/logo.png" alt="TFC Axom Logo" style={{ width: '40px', height: 'auto', marginBottom: '8px', filter: 'brightness(0)' }} />
         <span style={{ fontSize: '16px', fontWeight: '700', color: '#000' }}>TFC Axom</span>
       </div>
 
-      <h1 style={{ fontSize: '32px', fontWeight: '700', margin: '0 0 32px 0', color: '#000', textAlign: 'left' }}>
+      <h1 className="profile-heading" style={{ fontSize: '32px', fontWeight: '700', margin: '0 0 32px 0', color: '#000', textAlign: 'left' }}>
         Banking Info
       </h1>
       
-      <div style={{ display: 'flex', flexDirection: 'column', gap: '20px', marginBottom: '32px', textAlign: 'left' }}>
-        <div>
-          <label style={{ display: 'block', fontSize: '13px', fontWeight: '600', marginBottom: '8px', color: '#000', textAlign: 'left' }}>Bank Name</label>
-          <div style={{ position: 'relative' }}>
-            <Building size={18} color="#888" style={{ position: 'absolute', left: '16px', top: '50%', transform: 'translateY(-50%)' }} />
-            <input 
-              type="text" 
-              value={bankName}
-              placeholder="e.g. State Bank of India"
-              onChange={(e) => setBankName(e.target.value)}
-              style={{
-                width: '100%', padding: '16px 16px 16px 44px', borderRadius: '12px', border: 'none', backgroundColor: '#ffffff', fontSize: '14px', color: '#333', outline: 'none', boxShadow: '0 2px 10px rgba(0,0,0,0.02)', transition: 'box-shadow 0.2s', textAlign: 'left', boxSizing: 'border-box'
-              }}
-              onFocus={(e) => e.target.style.boxShadow = '0 2px 12px rgba(52, 187, 136, 0.2)'}
-              onBlur={(e) => e.target.style.boxShadow = '0 2px 10px rgba(0,0,0,0.02)'}
-            />
-          </div>
-        </div>
-
-        <div>
-          <label style={{ display: 'block', fontSize: '13px', fontWeight: '600', marginBottom: '8px', color: '#000', textAlign: 'left' }}>Account Holder Name</label>
-          <div style={{ position: 'relative' }}>
-            <User size={18} color="#888" style={{ position: 'absolute', left: '16px', top: '50%', transform: 'translateY(-50%)' }} />
-            <input 
-              type="text" 
-              value={accountHolderName}
-              placeholder="e.g. John Doe"
-              onChange={(e) => setAccountHolderName(e.target.value)}
-              style={{
-                width: '100%', padding: '16px 16px 16px 44px', borderRadius: '12px', border: 'none', backgroundColor: '#ffffff', fontSize: '14px', color: '#333', outline: 'none', boxShadow: '0 2px 10px rgba(0,0,0,0.02)', transition: 'box-shadow 0.2s', textAlign: 'left', boxSizing: 'border-box'
-              }}
-              onFocus={(e) => e.target.style.boxShadow = '0 2px 12px rgba(52, 187, 136, 0.2)'}
-              onBlur={(e) => e.target.style.boxShadow = '0 2px 10px rgba(0,0,0,0.02)'}
-            />
-          </div>
-        </div>
-
-        <div>
-          <label style={{ display: 'block', fontSize: '13px', fontWeight: '600', marginBottom: '8px', color: '#000', textAlign: 'left' }}>Account Number</label>
-          <div style={{ position: 'relative' }}>
-            <CreditCard size={18} color="#888" style={{ position: 'absolute', left: '16px', top: '50%', transform: 'translateY(-50%)' }} />
-            <input 
-              type="text" 
-              value={accountNumber}
-              placeholder="e.g. 123456789012"
-              onChange={(e) => setAccountNumber(e.target.value)}
-              style={{
-                width: '100%', padding: '16px 16px 16px 44px', borderRadius: '12px', border: 'none', backgroundColor: '#ffffff', fontSize: '14px', color: '#333', outline: 'none', boxShadow: '0 2px 10px rgba(0,0,0,0.02)', transition: 'box-shadow 0.2s', textAlign: 'left', boxSizing: 'border-box'
-              }}
-              onFocus={(e) => e.target.style.boxShadow = '0 2px 12px rgba(52, 187, 136, 0.2)'}
-              onBlur={(e) => e.target.style.boxShadow = '0 2px 10px rgba(0,0,0,0.02)'}
-            />
-          </div>
-        </div>
-
-        <div>
-          <label style={{ display: 'block', fontSize: '13px', fontWeight: '600', marginBottom: '8px', color: '#000', textAlign: 'left' }}>IFSC Code</label>
-          <div style={{ position: 'relative' }}>
-            <Hash size={18} color="#888" style={{ position: 'absolute', left: '16px', top: '50%', transform: 'translateY(-50%)' }} />
-            <input 
-              type="text" 
-              value={ifscCode}
-              placeholder="e.g. SBIN0001234"
-              onChange={(e) => setIfscCode(e.target.value.toUpperCase())}
-              style={{
-                width: '100%', padding: '16px 16px 16px 44px', borderRadius: '12px', border: 'none', backgroundColor: '#ffffff', fontSize: '14px', color: '#333', outline: 'none', boxShadow: '0 2px 10px rgba(0,0,0,0.02)', transition: 'box-shadow 0.2s', textAlign: 'left', textTransform: 'uppercase', boxSizing: 'border-box'
-              }}
-              onFocus={(e) => e.target.style.boxShadow = '0 2px 12px rgba(52, 187, 136, 0.2)'}
-              onBlur={(e) => e.target.style.boxShadow = '0 2px 10px rgba(0,0,0,0.02)'}
-            />
-          </div>
-        </div>
-
-        <div style={{ display: 'flex', gap: '12px' }}>
+      <div style={{ display: 'flex', flexDirection: 'column', gap: '40px', marginBottom: '32px', textAlign: 'left' }}>
+        <div className="responsive-flex-row">
           <div style={{ flex: 1 }}>
-            <label style={{ display: 'block', fontSize: '13px', fontWeight: '600', marginBottom: '8px', color: '#000', textAlign: 'left' }}>Branch City</label>
-            <div style={{ position: 'relative' }}>
-              <MapPin size={18} color="#888" style={{ position: 'absolute', left: '16px', top: '50%', transform: 'translateY(-50%)' }} />
+            <label className="profile-label">Bank Name</label>
+            <div className="profile-input-container">
+              <Building />
+              <input 
+                type="text" 
+                value={bankName}
+                placeholder="e.g. State Bank of India"
+                onChange={(e) => setBankName(e.target.value)}
+                className="profile-input"
+              />
+            </div>
+          </div>
+          <div style={{ flex: 1 }}>
+            <label className="profile-label">Account Holder Name</label>
+            <div className="profile-input-container">
+              <User />
+              <input 
+                type="text" 
+                value={accountHolderName}
+                placeholder="e.g. John Doe"
+                onChange={(e) => setAccountHolderName(e.target.value)}
+                className="profile-input"
+              />
+            </div>
+          </div>
+        </div>
+
+        <div className="responsive-flex-row">
+          <div style={{ flex: 1 }}>
+            <label className="profile-label">Account Number</label>
+            <div className="profile-input-container">
+              <CreditCard />
+              <input 
+                type="text" 
+                value={accountNumber}
+                placeholder="e.g. 123456789012"
+                onChange={(e) => setAccountNumber(e.target.value)}
+                className="profile-input"
+              />
+            </div>
+          </div>
+          <div style={{ flex: 1 }}>
+            <label className="profile-label">IFSC Code</label>
+            <div className="profile-input-container">
+              <Hash />
+              <input 
+                type="text" 
+                value={ifscCode}
+                placeholder="e.g. SBIN0001234"
+                onChange={(e) => setIfscCode(e.target.value.toUpperCase())}
+                className="profile-input"
+                style={{ textTransform: 'uppercase' }}
+              />
+            </div>
+          </div>
+        </div>
+
+        <div className="responsive-flex-row">
+          <div style={{ flex: 1 }}>
+            <label className="profile-label">Branch City</label>
+            <div className="profile-input-container">
+              <MapPin />
               <input 
                 type="text" 
                 value={branchCity}
                 placeholder="City"
                 onChange={(e) => setBranchCity(e.target.value)}
-                style={{
-                  width: '100%', padding: '16px 16px 16px 44px', borderRadius: '12px', border: 'none', backgroundColor: '#ffffff', fontSize: '14px', color: '#333', outline: 'none', boxShadow: '0 2px 10px rgba(0,0,0,0.02)', transition: 'box-shadow 0.2s', textAlign: 'left', boxSizing: 'border-box'
-                }}
-                onFocus={(e) => e.target.style.boxShadow = '0 2px 12px rgba(52, 187, 136, 0.2)'}
-                onBlur={(e) => e.target.style.boxShadow = '0 2px 10px rgba(0,0,0,0.02)'}
+                className="profile-input"
               />
             </div>
           </div>
           <div style={{ flex: 1 }}>
-            <label style={{ display: 'block', fontSize: '13px', fontWeight: '600', marginBottom: '8px', color: '#000', textAlign: 'left' }}>State</label>
-            <div style={{ position: 'relative' }}>
-              <Map size={18} color="#888" style={{ position: 'absolute', left: '16px', top: '50%', transform: 'translateY(-50%)' }} />
+            <label className="profile-label">State</label>
+            <div className="profile-input-container">
+              <Map />
               <input 
                 type="text" 
                 value={branchState}
                 placeholder="State"
                 onChange={(e) => setBranchState(e.target.value)}
-                style={{
-                  width: '100%', padding: '16px 16px 16px 44px', borderRadius: '12px', border: 'none', backgroundColor: '#ffffff', fontSize: '14px', color: '#333', outline: 'none', boxShadow: '0 2px 10px rgba(0,0,0,0.02)', transition: 'box-shadow 0.2s', textAlign: 'left', boxSizing: 'border-box'
-                }}
-                onFocus={(e) => e.target.style.boxShadow = '0 2px 12px rgba(52, 187, 136, 0.2)'}
-                onBlur={(e) => e.target.style.boxShadow = '0 2px 10px rgba(0,0,0,0.02)'}
+                className="profile-input"
               />
             </div>
           </div>
         </div>
 
-        <div style={{ display: 'flex', gap: '12px' }}>
+        <div className="responsive-flex-row">
           <div style={{ flex: 1 }}>
-            <label style={{ display: 'block', fontSize: '13px', fontWeight: '600', marginBottom: '8px', color: '#000', textAlign: 'left' }}>Pincode</label>
-            <div style={{ position: 'relative' }}>
-              <MapPin size={18} color="#888" style={{ position: 'absolute', left: '16px', top: '50%', transform: 'translateY(-50%)' }} />
+            <label className="profile-label">Pincode</label>
+            <div className="profile-input-container">
+              <MapPin />
               <input 
                 type="text" 
                 value={branchPincode}
                 placeholder="781001"
                 onChange={(e) => setBranchPincode(e.target.value)}
-                style={{
-                  width: '100%', padding: '16px 16px 16px 44px', borderRadius: '12px', border: 'none', backgroundColor: '#ffffff', fontSize: '14px', color: '#333', outline: 'none', boxShadow: '0 2px 10px rgba(0,0,0,0.02)', transition: 'box-shadow 0.2s', textAlign: 'left', boxSizing: 'border-box'
-                }}
-                onFocus={(e) => e.target.style.boxShadow = '0 2px 12px rgba(52, 187, 136, 0.2)'}
-                onBlur={(e) => e.target.style.boxShadow = '0 2px 10px rgba(0,0,0,0.02)'}
+                className="profile-input"
               />
             </div>
           </div>
@@ -229,21 +204,17 @@ export default function BankingInfoForm({
 
       </div>
 
-      <div style={{ display: 'flex', gap: '12px', flexDirection: 'row', marginBottom: '40px' }}>
+      <div className="responsive-btn-group" style={{ marginBottom: '40px' }}>
         <button 
           onClick={() => goToStep('input_contact_details')}
-          style={{
-            flex: 1, padding: '16px', backgroundColor: 'transparent', color: '#666', border: '1px solid #E5E7EB', borderRadius: '12px', fontSize: '15px', fontWeight: '600', cursor: 'pointer'
-          }}
+          className="profile-btn-back"
         >
           Back
         </button>
         <button 
           onClick={handleUpdateBanking}
           disabled={isUpdating}
-          style={{
-            flex: 1, padding: '16px', backgroundColor: '#1C1C1C', color: '#fff', borderRadius: '12px', border: 'none', fontSize: '15px', fontWeight: '600', cursor: !isUpdating ? 'pointer' : 'not-allowed', opacity: !isUpdating ? 1 : 0.7
-          }}
+          className="profile-btn-next"
         >
           {isUpdating ? 'Updating...' : (
             originalProfile && 

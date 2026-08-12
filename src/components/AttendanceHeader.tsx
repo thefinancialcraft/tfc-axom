@@ -27,7 +27,7 @@ export default function AttendanceHeader() {
 
   return (
     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '0 24px', marginBottom: '16px' }}>
-      <h2 style={{ color: '#fff', fontSize: '20px', fontWeight: '600', margin: 0 }}>Attendance</h2>
+      <h2 style={{ color: 'var(--text-color)', fontSize: '20px', fontWeight: '600', margin: 0 }}>Attendance</h2>
       
       <div style={{ display: 'flex', alignItems: 'center' }}>
         <button 
@@ -47,7 +47,7 @@ export default function AttendanceHeader() {
           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="15 18 9 12 15 6"></polyline></svg>
         </button>
         
-        <span suppressHydrationWarning style={{ color: '#fff', fontSize: '15px', fontWeight: '500', minWidth: '55px', textAlign: 'center', marginLeft: '12px' }}>
+        <span suppressHydrationWarning style={{ color: 'var(--text-color)', fontSize: '15px', fontWeight: '500', minWidth: '55px', textAlign: 'center', marginLeft: '12px' }}>
           {displayString}
         </span>
         

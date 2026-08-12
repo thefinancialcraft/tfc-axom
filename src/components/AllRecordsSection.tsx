@@ -13,9 +13,9 @@ export default function AllRecordsSection() {
     <div style={{ padding: '0 24px', marginTop: '40px' }}>
       {/* Header */}
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
-        <h2 style={{ color: '#fff', fontSize: '20px', fontWeight: '600', margin: 0 }}>All Records</h2>
+        <h2 style={{ color: 'var(--text-color)', fontSize: '20px', fontWeight: '600', margin: 0 }}>All Records</h2>
         <span style={{ 
-          backgroundColor: '#fff',
+          backgroundColor: 'var(--text-color)',
           color: '#000',
           padding: '6px 14px',
           borderRadius: '20px',
@@ -54,7 +54,7 @@ export default function AllRecordsSection() {
             <tbody>
               {records.map((record, index) => (
                 <tr key={index} style={{ borderBottom: index !== records.length - 1 ? '1px solid rgba(255,255,255,0.05)' : 'none' }}>
-                  <td style={{ padding: '16px', color: '#fff', fontSize: '14px', whiteSpace: 'nowrap' }}>{record.date}</td>
+                  <td style={{ padding: '16px', color: 'var(--text-color)', fontSize: '14px', whiteSpace: 'nowrap' }}>{record.date}</td>
                   <td style={{ padding: '16px', color: '#A3A3A3', fontSize: '14px', whiteSpace: 'nowrap' }}>{record.checkIn}</td>
                   <td style={{ padding: '16px', color: '#A3A3A3', fontSize: '14px', whiteSpace: 'nowrap' }}>{record.checkOut}</td>
                   <td style={{ 

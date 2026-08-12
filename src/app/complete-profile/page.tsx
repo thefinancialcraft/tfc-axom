@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { Mail, Phone, Users, AlertCircle, Building, User, CreditCard, Hash, MapPin, Map, FileText, Link as LinkIcon, Calendar } from 'lucide-react';
+import { Mail, Phone, Users, AlertCircle, Building, User, CreditCard, Hash, MapPin, Map, FileText, Link as LinkIcon, Calendar, Image as ImageIcon, Info } from 'lucide-react';
 import LogoutButton from '@/components/LogoutButton';
 import { supabase } from '@/lib/supabase';
 import ScrollPicker from '@/components/ScrollPicker';
@@ -24,8 +24,11 @@ export default function CompleteProfilePage() {
   const [userName, setUserName] = useState('');
   const [hideGreeting, setHideGreeting] = useState(false);
   const [showQuestion, setShowQuestion] = useState(false);
-  const [step, setStep] = useState<'ask_name' | 'input_name' | 'input_father_name' | 'input_dob' | 'input_gender_blood' | 'success_basic_info' | 'input_contact_details' | 'input_banking_info' | 'input_identity_docs'>('ask_name');
+  const [step, setStep] = useState<'ask_name' | 'input_name' | 'upload_avatar' | 'input_father_name' | 'input_dob' | 'input_gender_blood' | 'input_contact_details' | 'input_banking_info' | 'input_identity_docs'>('ask_name');
   const [newName, setNewName] = useState('');
+  const [avatarUrl, setAvatarUrl] = useState('');
+  const [avatarPreview, setAvatarPreview] = useState('');
+  const [avatarFile, setAvatarFile] = useState<File | null>(null);
   const [fatherName, setFatherName] = useState('');
   const [dobDay, setDobDay] = useState('01');
   const [dobMonth, setDobMonth] = useState('Jan');
@@ -39,6 +42,7 @@ export default function CompleteProfilePage() {
   const [isUpdating, setIsUpdating] = useState(false);
   const [isUserFetched, setIsUserFetched] = useState(false);
   const [isTransitioning, setIsTransitioning] = useState(false);
+  const [showAvatarInfo, setShowAvatarInfo] = useState(false);
   
   // Banking Info
   const [bankName, setBankName] = useState('');
@@ -56,6 +60,8 @@ export default function CompleteProfilePage() {
   const [aadharCardNo, setAadharCardNo] = useState('');
   const [aadharFrontUrl, setAadharFrontUrl] = useState('');
   const [aadharBackUrl, setAadharBackUrl] = useState('');
+  const [panCardNo, setPanCardNo] = useState('');
+  const [panCardUrl, setPanCardUrl] = useState('');
   const [qualificationMarksheetUrl, setQualificationMarksheetUrl] = useState('');
 
   const [originalProfile, setOriginalProfile] = useState<any>(null);
@@ -88,7 +94,7 @@ export default function CompleteProfilePage() {
     
     // Skip DB hit if unchanged
     if (originalProfile && newName.trim() === originalProfile.user_name) {
-      goToStep('input_father_name');
+      goToStep('upload_avatar');
       return;
     }
 
@@ -113,13 +119,117 @@ export default function CompleteProfilePage() {
         data: { full_name: newName.trim(), name: newName.trim() }
       });
 
-      goToStep('input_father_name');
+      goToStep('upload_avatar');
     } catch (error) {
       console.error('Error updating name:', error);
       alert('Failed to update name. Please try again.');
     } finally {
       setIsUpdating(false);
     }
+  };
+
+  const handleUpdateAvatar = async () => {
+    if (originalProfile && !avatarFile && avatarUrl === (originalProfile.profile_pic_url || '')) {
+      goToStep('input_father_name');
+      return;
+    }
+
+    setIsUpdating(true);
+    
+    try {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session) throw new Error('Not authenticated');
+
+      let finalAvatarUrl = avatarUrl;
+      
+      // If a new file was selected, upload it to storage
+      if (avatarFile) {
+        const fileExt = avatarFile.name.split('.').pop();
+        const filePath = `${session.user.id}/avatar-${Date.now()}.${fileExt}`;
+        
+        const { error: uploadError } = await supabase.storage
+          .from('user-uploads')
+          .upload(filePath, avatarFile, { upsert: true });
+          
+        if (uploadError) throw uploadError;
+        
+        const { data: { publicUrl } } = supabase.storage
+          .from('user-uploads')
+          .getPublicUrl(filePath);
+          
+        finalAvatarUrl = publicUrl;
+      }
+
+      const { error: profileError } = await supabase
+        .from('user_profiles')
+        .update({ 
+          profile_pic_url: finalAvatarUrl
+        })
+        .eq('user_id', session.user.id);
+        
+      if (profileError) throw profileError;
+
+      goToStep('input_father_name');
+    } catch (error) {
+      console.error('Error updating avatar:', error);
+      alert('Failed to upload and update avatar. Please try again.');
+    } finally {
+      setIsUpdating(false);
+    }
+  };
+
+  const checkTransparency = (file: File): Promise<boolean> => {
+    return new Promise((resolve) => {
+      // JPEGs don't support transparency
+      if (file.type === 'image/jpeg' || file.type === 'image/jpg') {
+        resolve(false);
+        return;
+      }
+
+      const img = new Image();
+      const objectUrl = URL.createObjectURL(file);
+      
+      img.onload = () => {
+        const canvas = document.createElement('canvas');
+        const ctx = canvas.getContext('2d');
+        if (!ctx) {
+          resolve(true); // Fallback if canvas is not supported
+          return;
+        }
+
+        canvas.width = img.width;
+        canvas.height = img.height;
+        ctx.drawImage(img, 0, 0);
+
+        try {
+          const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+          const data = imageData.data;
+          
+          let hasTransparency = false;
+          // Check every 4th value (alpha channel)
+          // We can skip some pixels for performance if it's a huge image, but usually avatars are small.
+          // Checking every 4th pixel to make it faster
+          for (let i = 3; i < data.length; i += 16) {
+            if (data[i] < 255) {
+              hasTransparency = true;
+              break;
+            }
+          }
+          
+          URL.revokeObjectURL(objectUrl);
+          resolve(hasTransparency);
+        } catch (e) {
+          // CORS or other errors, fallback to true
+          resolve(true);
+        }
+      };
+      
+      img.onerror = () => {
+        resolve(true); // Fallback on error
+      };
+      
+      img.src = objectUrl;
+    });
   };
 
   const handleUpdateFatherName = async () => {
@@ -193,7 +303,7 @@ export default function CompleteProfilePage() {
 
   const handleUpdateGenderBlood = async () => {
     if (originalProfile && gender === originalProfile.gender && bloodGroup === originalProfile.blood_group) {
-      goToStep('success_basic_info');
+      goToStep('input_contact_details');
       return;
     }
 
@@ -213,7 +323,7 @@ export default function CompleteProfilePage() {
         
       if (profileError) throw profileError;
 
-      goToStep('success_basic_info');
+      goToStep('input_contact_details');
       
     } catch (error) {
       console.error('Error updating details:', error);
@@ -319,6 +429,8 @@ export default function CompleteProfilePage() {
           aadhar_card_no: aadharCardNo.trim(),
           aadhar_front_url: aadharFrontUrl,
           aadhar_back_url: aadharBackUrl,
+          pan_card_no: panCardNo.trim(),
+          pan_card_url: panCardUrl,
           qualification_marksheet_url: qualificationMarksheetUrl
         })
         .eq('user_id', session.user.id);
@@ -333,15 +445,6 @@ export default function CompleteProfilePage() {
     }
   };
 
-  useEffect(() => {
-    let timer: NodeJS.Timeout;
-    if (step === 'success_basic_info') {
-      timer = setTimeout(() => {
-        goToStep('input_contact_details');
-      }, 2000);
-    }
-    return () => clearTimeout(timer);
-  }, [step]);
 
   useEffect(() => {
     async function fetchUser() {
@@ -358,6 +461,10 @@ export default function CompleteProfilePage() {
         // Set user name for greeting and input
         setUserName(profile?.user_name || authName);
         if (profile?.user_name) setNewName(profile.user_name);
+        if (profile?.profile_pic_url) {
+          setAvatarUrl(profile.profile_pic_url);
+          setAvatarPreview(profile.profile_pic_url);
+        }
         
         // Set other fields if they exist
         if (profile?.father_name) setFatherName(profile.father_name);
@@ -398,6 +505,8 @@ export default function CompleteProfilePage() {
         if (profile.aadhar_card_no) setAadharCardNo(profile.aadhar_card_no);
         if (profile.aadhar_front_url) setAadharFrontUrl(profile.aadhar_front_url);
         if (profile.aadhar_back_url) setAadharBackUrl(profile.aadhar_back_url);
+        if (profile.pan_card_no) setPanCardNo(profile.pan_card_no);
+        if (profile.pan_card_url) setPanCardUrl(profile.pan_card_url);
         if (profile.qualification_marksheet_url) setQualificationMarksheetUrl(profile.qualification_marksheet_url);
       }
       setIsUserFetched(true);
@@ -697,7 +806,7 @@ export default function CompleteProfilePage() {
                   </button>
                   <button 
                     className="mirror-btn" 
-                    onClick={() => goToStep('input_father_name')}
+                    onClick={() => goToStep('upload_avatar')}
                     style={{
                       padding: '10px 20px',
                       backgroundColor: 'rgba(255, 255, 255, 0.05)',
@@ -784,6 +893,154 @@ export default function CompleteProfilePage() {
                     }}
                   >
                     {isUpdating ? 'Updating...' : (originalProfile && newName.trim() === originalProfile.user_name ? 'Next' : 'Update Name')}
+                  </button>
+                </div>
+              </div>
+            )}
+
+            {step === 'upload_avatar' && (
+              <div style={{ animation: 'fade-in-up 0.5s', width: '100%', maxWidth: '300px' }}>
+                <p style={{ color: 'rgba(255, 255, 255, 0.7)', fontSize: '15px', fontWeight: '400', marginBottom: '8px' }}>
+                  Upload your avatar
+                </p>
+                <p style={{ color: 'rgba(255, 255, 255, 0.5)', fontSize: '12px', marginBottom: '32px', lineHeight: '1.4' }}>
+                  Please ensure the image is passport-sized with a transparent background.
+                </p>
+                
+                <div style={{ position: 'relative', width: '120px', margin: '0 auto 40px auto' }}>
+                  <div style={{ position: 'relative', width: '120px', height: '120px', borderRadius: '50%', border: '2px dashed rgba(255, 255, 255, 0.2)', display: 'flex', alignItems: 'center', justifyContent: 'center', overflow: 'hidden' }}>
+                  <input
+                    type="file"
+                    id="avatar-upload"
+                    accept="image/*"
+                    onChange={async (e) => {
+                      if (e.target.files && e.target.files[0]) {
+                        const file = e.target.files[0];
+                        
+                        // Check transparency
+                        const isTransparent = await checkTransparency(file);
+                        if (!isTransparent) {
+                          alert('Please upload an image with a transparent background. JPEGs or images with solid backgrounds are not allowed.');
+                          e.target.value = ''; // Reset input
+                          return;
+                        }
+                        
+                        setAvatarFile(file);
+                        setAvatarUrl(file.name);
+                        setAvatarPreview(URL.createObjectURL(file));
+                      }
+                    }}
+                    style={{ display: 'none' }}
+                  />
+                  <label
+                    htmlFor="avatar-upload"
+                    style={{
+                      display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', width: '100%', height: '100%', cursor: 'pointer', backgroundColor: 'rgba(255,255,255,0.05)',
+                      backgroundImage: avatarPreview 
+                        ? `url(${avatarPreview}), repeating-linear-gradient(45deg, #333333 25%, transparent 25%, transparent 75%, #333333 75%, #333333), repeating-linear-gradient(45deg, #333333 25%, #000000 25%, #000000 75%, #333333 75%, #333333)`
+                        : 'none',
+                      backgroundSize: avatarPreview ? 'cover, 16px 16px, 16px 16px' : 'cover',
+                      backgroundPosition: avatarPreview ? 'center, 0 0, 8px 8px' : 'center',
+                      backgroundRepeat: 'no-repeat, repeat, repeat',
+                      transform: avatarPreview ? 'scale(1.15)' : 'scale(1)',
+                      filter: avatarPreview ? 'grayscale(100%)' : 'none',
+                      transition: 'all 0.3s ease'
+                    }}
+                  >
+                    {!avatarPreview && (
+                      <>
+                        <ImageIcon size={24} color="#888" style={{ marginBottom: '8px' }} />
+                        <span style={{ fontSize: '12px', color: '#888' }}>Upload</span>
+                      </>
+                    )}
+                  </label>
+                </div>
+                
+                {/* Info button */}
+                <button 
+                  onClick={() => setShowAvatarInfo(true)}
+                  style={{ position: 'absolute', top: 0, right: '-35px', background: 'none', border: 'none', color: 'rgba(255,255,255,0.5)', cursor: 'pointer', padding: '4px' }}
+                >
+                  <Info size={20} />
+                </button>
+                </div>
+
+                {/* Info Modal */}
+                {showAvatarInfo && (
+                  <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, backgroundColor: 'rgba(0,0,0,0.85)', zIndex: 1000, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '24px' }}>
+                    <div style={{ backgroundColor: '#1a1a1a', padding: '24px', borderRadius: '24px', width: '100%', maxWidth: '320px', position: 'relative', border: '1px solid rgba(255,255,255,0.1)', textAlign: 'left' }}>
+                      
+                      <div style={{ display: 'flex', justifyContent: 'center', marginBottom: '24px' }}>
+                        <div style={{ 
+                          width: '100px', height: '100px', borderRadius: '50%', overflow: 'hidden', 
+                          display: 'flex', alignItems: 'center', justifyContent: 'center',
+                          backgroundImage: 'repeating-linear-gradient(45deg, #333333 25%, transparent 25%, transparent 75%, #333333 75%, #333333), repeating-linear-gradient(45deg, #333333 25%, #000000 25%, #000000 75%, #333333 75%, #333333)',
+                          backgroundSize: '16px 16px, 16px 16px',
+                          backgroundPosition: '0 0, 8px 8px',
+                          border: '2px solid rgba(255,255,255,0.1)'
+                        }}>
+                          <img src="/avatar-demo.png" alt="Demo" style={{ height: '110px', transform: 'translateY(10px)', filter: 'grayscale(100%)' }} />
+                        </div>
+                      </div>
+
+                      <h3 style={{ color: 'var(--text-color)', marginTop: 0, marginBottom: '16px', fontSize: '15px', fontWeight: '400' }}>Avatar Guidelines</h3>
+                      <ul style={{ color: 'rgba(255,255,255,0.6)', fontSize: '13px', paddingLeft: '16px', marginBottom: '32px', lineHeight: '1.5', fontWeight: '300' }}>
+                        <li style={{ marginBottom: '8px' }}>Image must be in <span style={{ color: 'rgba(255,255,255,0.9)', fontWeight: '400' }}>PNG format</span> with a transparent background.</li>
+                        <li style={{ marginBottom: '8px' }}>Must have a <span style={{ color: 'rgba(255,255,255,0.9)', fontWeight: '400' }}>1:1 ratio (Square)</span> shape.</li>
+                        <li style={{ marginBottom: '8px' }}>Should <span style={{ color: 'rgba(255,255,255,0.9)', fontWeight: '400' }}>not show more than the shoulders</span>.</li>
+                        <li>Leave a little <span style={{ color: 'rgba(255,255,255,0.9)', fontWeight: '400' }}>space above the head</span>.</li>
+                      </ul>
+                      
+                      <button 
+                        onClick={() => setShowAvatarInfo(false)}
+                        style={{ width: '100%', padding: '12px', borderRadius: '12px', border: 'none', backgroundColor: '#34BB88', color: 'black', fontWeight: '500', cursor: 'pointer', fontSize: '14px' }}
+                      >
+                        Got it
+                      </button>
+                    </div>
+                  </div>
+                )}
+                
+                {avatarUrl && !avatarPreview && (
+                  <p style={{ color: 'var(--color-green)', fontSize: '12px', marginBottom: '20px' }}>
+                    {avatarUrl.length > 20 ? avatarUrl.substring(0, 20) + '...' : avatarUrl}
+                  </p>
+                )}
+
+                <div style={{ display: 'flex', gap: '16px', justifyContent: 'center' }}>
+                  <button 
+                    onClick={() => goToStep('ask_name')}
+                    style={{
+                      padding: '10px 24px',
+                      backgroundColor: 'transparent',
+                      color: 'rgba(255, 255, 255, 0.6)',
+                      border: 'none',
+                      fontWeight: '500',
+                      cursor: 'pointer',
+                      fontSize: '13px'
+                    }}
+                  >
+                    Back
+                  </button>
+                  <button 
+                    className="mirror-btn" 
+                    onClick={handleUpdateAvatar}
+                    disabled={isUpdating}
+                    style={{
+                      padding: '10px 24px',
+                      backgroundColor: 'rgba(52, 187, 136, 0.15)',
+                      color: 'var(--color-green, #34BB88)',
+                      border: '1px solid rgba(52, 187, 136, 0.3)',
+                      borderRadius: '30px',
+                      fontWeight: '500',
+                      cursor: !isUpdating ? 'pointer' : 'not-allowed',
+                      fontSize: '13px',
+                      opacity: !isUpdating ? 1 : 0.5,
+                      backdropFilter: 'blur(10px)',
+                      WebkitBackdropFilter: 'blur(10px)'
+                    }}
+                  >
+                    {isUpdating ? 'Updating...' : (originalProfile && avatarUrl === (originalProfile.profile_pic_url || '') ? 'Next' : 'Upload')}
                   </button>
                 </div>
               </div>
@@ -1043,75 +1300,6 @@ export default function CompleteProfilePage() {
               </div>
             )}
 
-            {step === 'success_basic_info' && (
-              <div style={{ position: 'relative', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', width: '100%', maxWidth: '350px', height: '320px' }}>
-                <style>{`
-                  @keyframes slide-up-fade {
-                    0% { transform: translateY(20px); opacity: 0; filter: blur(4px); }
-                    100% { transform: translateY(0); opacity: 1; filter: blur(0); }
-                  }
-                  @keyframes scale-up-badge {
-                    0% { transform: scale(0.5); opacity: 0; }
-                    60% { transform: scale(1.1); opacity: 1; }
-                    100% { transform: scale(1); opacity: 1; }
-                  }
-                  @keyframes image-reveal {
-                    0% { transform: scale(1.05); opacity: 0; filter: blur(10px) grayscale(100%); }
-                    100% { transform: scale(1); opacity: 0.8; filter: blur(0) grayscale(100%); }
-                  }
-                `}</style>
-
-                {/* Background Faded Image */}
-                <div style={{
-                  position: 'absolute',
-                  top: 0,
-                  left: 0,
-                  width: '100%',
-                  height: '100%',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  zIndex: 0,
-                  pointerEvents: 'none'
-                }}>
-                  <img 
-                    src="/dtlcolt.png" 
-                    alt="Background" 
-                    style={{ 
-                      width: '280px', 
-                      height: 'auto', 
-                      filter: 'grayscale(100%)',
-                      WebkitMaskImage: 'linear-gradient(to bottom, black 20%, transparent 85%)',
-                      maskImage: 'linear-gradient(to bottom, black 20%, transparent 85%)',
-                      animation: 'image-reveal 1.2s ease-out forwards'
-                    }} 
-                  />
-                </div>
-                
-                {/* Centered Foreground Text */}
-                <div style={{ position: 'relative', zIndex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', marginTop: '40px' }}>
-                  <h2 style={{ color: 'var(--color-white)', fontSize: '24px', fontWeight: '500', marginBottom: '24px', textAlign: 'center', lineHeight: '1.4', animation: 'slide-up-fade 0.8s ease-out 0.3s both', textShadow: '0 4px 10px rgba(0,0,0,0.5)' }}>
-                    Basic & Personal<br/>Information
-                  </h2>
-                  
-                  <div style={{ 
-                    backgroundColor: 'rgba(52, 187, 136, 0.15)',
-                    padding: '8px 24px',
-                    borderRadius: '30px',
-                    border: '1px solid rgba(52, 187, 136, 0.4)',
-                    animation: 'scale-up-badge 0.6s cubic-bezier(0.175, 0.885, 0.32, 1.275) 0.7s both',
-                    boxShadow: '0 8px 32px rgba(52, 187, 136, 0.2)',
-                    backdropFilter: 'blur(8px)',
-                    WebkitBackdropFilter: 'blur(8px)'
-                  }}>
-                    <p style={{ color: 'var(--color-green)', fontSize: '13px', fontWeight: '700', letterSpacing: '4px', textTransform: 'uppercase', margin: 0 }}>
-                      Collected
-                    </p>
-                  </div>
-                </div>
-              </div>
-            )}
-
             {step === 'input_contact_details' && (
               <div style={{ animation: 'fade-in-up 0.8s ease-out both', width: '100%' }}>
                 <ContactDetailsForm
@@ -1150,6 +1338,8 @@ export default function CompleteProfilePage() {
                   aadharCardNo={aadharCardNo} setAadharCardNo={setAadharCardNo}
                   aadharFrontUrl={aadharFrontUrl} setAadharFrontUrl={setAadharFrontUrl}
                   aadharBackUrl={aadharBackUrl} setAadharBackUrl={setAadharBackUrl}
+                  panCardNo={panCardNo} setPanCardNo={setPanCardNo}
+                  panCardUrl={panCardUrl} setPanCardUrl={setPanCardUrl}
                   qualificationMarksheetUrl={qualificationMarksheetUrl} setQualificationMarksheetUrl={setQualificationMarksheetUrl}
                   isUpdating={isUpdating} goToStep={goToStep} handleUpdateIdentity={handleUpdateIdentity}
                   originalProfile={originalProfile}

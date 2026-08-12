@@ -1,5 +1,6 @@
 'use client';
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
+import MeteorShower from './MeteorShower';
 
 export default function SummarySection() {
   const [currentDate, setCurrentDate] = useState(new Date());
@@ -43,7 +44,7 @@ export default function SummarySection() {
   return (
     <div style={{ marginTop: '32px', padding: '0 24px', paddingBottom: '32px' }}>
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-        <h2 style={{ color: '#fff', fontSize: '20px', fontWeight: '600', margin: 0 }}>Summary</h2>
+        <h2 style={{ color: 'var(--text-color)', fontSize: '20px', fontWeight: '600', margin: 0 }}>Summary</h2>
         
         <div style={{ display: 'flex', alignItems: 'center' }}>
           <button 
@@ -63,7 +64,7 @@ export default function SummarySection() {
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="15 18 9 12 15 6"></polyline></svg>
           </button>
           
-          <span suppressHydrationWarning style={{ color: '#fff', fontSize: '15px', fontWeight: '500', minWidth: '55px', textAlign: 'center', marginLeft: '12px' }}>
+          <span suppressHydrationWarning style={{ color: 'var(--text-color)', fontSize: '15px', fontWeight: '500', minWidth: '55px', textAlign: 'center', marginLeft: '12px' }}>
             {displayString}
           </span>
           
@@ -98,7 +99,7 @@ export default function SummarySection() {
       
       {/* Slide Container Wrapper */}
       <div 
-        className="summary-slider" 
+        className="summary-slider-container" 
         onScroll={(e) => {
           const scrollLeft = e.currentTarget.scrollLeft;
           const width = e.currentTarget.clientWidth;
@@ -107,60 +108,39 @@ export default function SummarySection() {
             setCurrentSlide(newIndex);
           }
         }}
-        style={{ 
-          display: 'flex', 
-          overflowX: 'auto', 
-          scrollSnapType: 'x mandatory', 
-          gap: '16px',
-          marginTop: '20px',
-          paddingBottom: '8px', // Space for invisible scrollbar 
-        }}
       >
-        <style>
-          {`
-            .summary-slider::-webkit-scrollbar {
-              display: none;
-            }
-            .summary-slider {
-              -ms-overflow-style: none;
-              scrollbar-width: none;
-            }
-          `}
-        </style>
-
         {/* Slide 1: Progress Circle */}
-        <div style={{ 
-          flex: '0 0 100%', 
-          scrollSnapAlign: 'start',
-          height: '180px', 
+        <div className="hero-slide summary-card" style={{ 
           backgroundColor: '#363636', 
           borderRadius: '24px',
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'center',
-          gap: '24px',
-          padding: '10px',
           position: 'relative',
           boxSizing: 'border-box',
           overflow: 'hidden'
         }}>
           <div className="top-right-pattern" style={{ opacity: 0.15, right: 'auto', left: '-20px', top: '-20px', zIndex: 0 }}></div>
+          <MeteorShower />
           {/* 31 Days Badge */}
           <div style={{
             position: 'absolute',
-            top: '10px',
-            right: '10px',
+            top: '12px',
+            right: '12px',
             backgroundColor: 'rgba(255, 255, 255, 0.1)',
-            color: '#fff',
+            color: 'var(--text-color)',
             padding: '4px 12px',
             borderRadius: '16px',
             fontSize: '12px',
-            fontWeight: '600'
+            fontWeight: '600',
+            zIndex: 10
           }}>
             31 Days
           </div>
-          {/* Left Half: Progress Circle */}
-          <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', position: 'relative' }}>
+
+          <div className="scale-desktop" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '24px' }}>
+            {/* Left Half: Progress Circle */}
+            <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', position: 'relative' }}>
             <div className="progress-container" style={{ position: 'relative', display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
               <svg className="progress-svg" width="140" height="140" style={{ transform: 'rotate(-90deg)' }}>
               <circle 
@@ -175,7 +155,7 @@ export default function SummarySection() {
               ></circle>
             </svg>
 
-              <div className="progress-text" id="progress-text" style={{ position: 'absolute', display: 'flex', flexDirection: 'column', alignItems: 'center', color: '#fff' }}>
+              <div className="progress-text" id="progress-text" style={{ position: 'absolute', display: 'flex', flexDirection: 'column', alignItems: 'center', color: 'var(--text-color)' }}>
                 <span style={{ fontSize: '18px', fontWeight: 'bold' }}>100%</span>
                 <span style={{ fontSize: '8px', color: 'rgba(255,255,255,0.6)', marginTop: '-4px' }}>Attendance</span>
               </div>
@@ -224,41 +204,39 @@ export default function SummarySection() {
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
             <div className="col-dta" style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
               <div>
-                <p className="col-val" style={{ margin: 0, fontSize: '14px', fontWeight: '600', color: '#fff' }}>27 Days</p>
+                <p className="col-val" style={{ margin: 0, fontSize: '14px', fontWeight: '600', color: 'var(--text-color)' }}>27 Days</p>
                 <p className="col-titl" style={{ margin: 0, fontSize: '11px', color: 'rgba(255, 255, 255, 0.6)' }}>Working Days</p>
               </div>
               <div>
-                <p className="col-val" style={{ margin: 0, fontSize: '14px', fontWeight: '600', color: '#fff' }}>04 Days</p>
+                <p className="col-val" style={{ margin: 0, fontSize: '14px', fontWeight: '600', color: 'var(--text-color)' }}>04 Days</p>
                 <p className="col-titl" style={{ margin: 0, fontSize: '11px', color: 'rgba(255, 255, 255, 0.6)' }}>Holidays</p>
               </div>
             </div>
           </div>
+          </div>
         </div>
 
         {/* Slide 2: Bar Graph */}
-        <div style={{ 
-          flex: '0 0 100%', 
-          scrollSnapAlign: 'start',
-          height: '180px', 
+        <div className="hero-slide summary-card" style={{ 
           backgroundColor: '#363636', 
           borderRadius: '24px',
           display: 'flex',
           alignItems: 'center',
-          justifyContent: 'space-around',
-          padding: '20px 10px',
-          boxSizing: 'border-box',
+          justifyContent: 'center',
           position: 'relative',
           overflow: 'hidden'
         }}>
           <div className="top-right-pattern" style={{ opacity: 0.15, right: 'auto', left: '-20px', top: '-20px', zIndex: 0 }}></div>
+          <MeteorShower />
+          <div className="scale-desktop desktop-compact-gap" style={{ display: 'flex', alignItems: 'flex-end', justifyContent: 'space-around', width: '100%', height: '140px', padding: '0 20px' }}>
           {[
             { label: 'P', value: 24, max: 31, color: '#4ADE80' },
             { label: 'L', value: 3, max: 31, color: '#FFE76B' },
             { label: 'H', value: 4, max: 31, color: '#FF9800' },
             { label: 'A', value: 0, max: 31, color: '#FD6579' }
           ].map((bar, i) => (
-            <div key={i} style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', height: '100%', justifyContent: 'flex-end', gap: '8px', position: 'relative', zIndex: 1 }}>
-              <span style={{ color: '#fff', fontSize: '13px', fontWeight: '600' }}>
+            <div key={i} style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', height: '100%', justifyContent: 'flex-end', gap: '10px', position: 'relative', zIndex: 1 }}>
+              <span style={{ color: 'var(--text-color)', fontSize: '13px', fontWeight: '600' }}>
                 {bar.value.toString().padStart(2, '0')}
               </span>
               <div style={{ 
@@ -285,12 +263,13 @@ export default function SummarySection() {
               </span>
             </div>
           ))}
+          </div>
         </div>
 
       </div>
 
       {/* Pagination Dots */}
-      <div style={{ display: 'flex', justifyContent: 'center', gap: '8px', marginTop: '12px' }}>
+      <div className="mobile-only" style={{ display: 'flex', justifyContent: 'center', gap: '8px', marginTop: '12px' }}>
         {[0, 1].map(index => (
           <div 
             key={index}
@@ -304,98 +283,93 @@ export default function SummarySection() {
           ></div>
         ))}
       </div>
-      {/* New Section Below Indicator */}
-      <div style={{ 
-        marginTop: '120px', // Extra margin so the overflowing image doesn't get cut off by elements above
-        backgroundColor: '#363636', 
-        borderRadius: '24px', 
-        position: 'relative',
-        height: '85px',
-      }}>
-        {/* We use a wrapper with strict overflow to clip the pattern, allowing the image to overflow the parent */}
-        <div style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, borderRadius: '24px', overflow: 'hidden', zIndex: 0 }}>
-          <div className="top-right-pattern" style={{ opacity: 0.15, right: 'auto', left: '-20px', top: '-20px' }}></div>
-        </div>
-        <div style={{
-          position: 'absolute',
-          top: 0, left: 0, right: 0, bottom: 0,
-          clipPath: 'inset(-200px 0 0 0 round 24px)', // Allows overflow up to 200px on top, clips left/right/bottom strictly to the card with a 24px radius
-          zIndex: 10,
-          filter: 'grayscale(100%)'
+      <div className="salary-stats-container">
+        {/* New Section Below Indicator (Salary) */}
+        <div className="salary-card" style={{ 
+          backgroundColor: '#363636', 
+          borderRadius: '24px', 
+          position: 'relative',
+          height: '85px',
         }}>
-          <img 
-            src="/chill.png" 
-            alt="Chill" 
-            style={{ 
-              width: '100%', 
-              height: 'auto', 
-              position: 'absolute',
-              bottom: '-125px', // Adjust to slide image down
-              left:'-100px',
-            }} 
-          />
-        </div>
-        
-        {/* "Salary" Label Above the Div */}
-        <div style={{ 
-          position: 'absolute', 
-          right: '24px', 
-          top: '-60px', 
-          zIndex: 11,
-          display: 'flex',
-          flexDirection: 'column',
-          alignItems: 'flex-end'
-        }}>
-          <span style={{ color: '#fff', fontSize: '22px', fontWeight: '400', lineHeight: 1 }}>Salary</span>
-          <span style={{ color: '#fff', fontSize: '22px', fontWeight: '400', lineHeight: 1, marginTop: '6px' }}>Conversion</span>
-        </div>
-        
-        {/* Amount Text at the Right End */}
-        <div style={{ 
-          position: 'absolute', 
-          right: '24px', 
-          top: '50%', 
-          transform: 'translateY(-50%)', 
-          zIndex: 11,
-          display: 'flex',
-          flexDirection: 'column',
-          alignItems: 'flex-end'
-        }}>
-          <span style={{ color: '#fff', fontSize: '32px', fontWeight: '700' }}>₹65,000</span>
-        </div>
-
-      </div>
-
-      {/* 4 Stats Below Salary */}
-      <div style={{ 
-        display: 'flex', 
-        justifyContent: 'space-between', 
-        marginTop: '16px',
-        gap: '8px'
-      }}>
-        {[
-          { label: 'Present', value: '24', color: '#4ADE80' },
-          { label: 'Halfday', value: '02', color: '#FFE76B' },
-          { label: 'Absent', value: '01', color: '#FD6579' },
-          { label: 'P. Leave', value: '03', color: '#4484FF' }
-        ].map((stat, i) => (
-          <div key={i} style={{ 
-            flex: 1, 
-            backgroundColor: '#363636', 
-            borderRadius: '16px', 
-            padding: '12px 4px', 
-            display: 'flex', 
-            flexDirection: 'column', 
-            alignItems: 'center',
-            justifyContent: 'center',
-            position: 'relative',
-            overflow: 'hidden'
-          }}>
-            <div className="top-right-pattern" style={{ opacity: 0.15, right: 'auto', left: '-10px', top: '-10px', zIndex: 0 }}></div>
-            <span style={{ color: stat.color, fontSize: '18px', fontWeight: 'bold', zIndex: 1, position: 'relative' }}>{stat.value}</span>
-            <span style={{ color: 'rgba(255,255,255,0.6)', fontSize: '11px', marginTop: '4px', whiteSpace: 'nowrap', zIndex: 1, position: 'relative' }}>{stat.label}</span>
+          {/* We use a wrapper with strict overflow to clip the pattern, allowing the image to overflow the parent */}
+          <div style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, borderRadius: '24px', overflow: 'hidden', zIndex: 0 }}>
+            <div className="top-right-pattern" style={{ opacity: 0.15, right: 'auto', left: '-20px', top: '-20px' }}></div>
+            <MeteorShower />
           </div>
-        ))}
+          <div style={{
+            position: 'absolute',
+            top: 0, left: 0, right: 0, bottom: 0,
+            clipPath: 'inset(-200px 0 0 0 round 24px)', // Allows overflow up to 200px on top, clips left/right/bottom strictly to the card with a 24px radius
+            zIndex: 10,
+            filter: 'grayscale(100%)'
+          }}>
+            <img 
+              src="/chill.png" 
+              alt="Chill" 
+              className="salary-img"
+            />
+          </div>
+          
+          {/* "Salary" Label Above the Div */}
+          <div className="salary-label-container" style={{ 
+            position: 'absolute', 
+            right: '24px', 
+            top: '-60px', 
+            zIndex: 11,
+            display: 'flex',
+            flexDirection: 'column',
+            alignItems: 'flex-end'
+          }}>
+            <span style={{ color: 'var(--text-color)', fontSize: '22px', fontWeight: '400', lineHeight: 1 }}>Salary</span>
+            <span style={{ color: 'var(--text-color)', fontSize: '22px', fontWeight: '400', lineHeight: 1, marginTop: '6px' }}>Conversion</span>
+          </div>
+          
+          {/* Amount Text at the Right End */}
+          <div className="salary-amount-container" style={{ 
+            position: 'absolute', 
+            right: '24px', 
+            top: '50%', 
+            transform: 'translateY(-50%)', 
+            zIndex: 11,
+            display: 'flex',
+            flexDirection: 'column',
+            alignItems: 'flex-end'
+          }}>
+            <span style={{ color: 'var(--text-color)', fontSize: '32px', fontWeight: '700' }}>₹65,000</span>
+          </div>
+        </div>
+
+        {/* 4 Stats Below Salary */}
+        <div className="stats-grid" style={{ 
+          display: 'flex', 
+          justifyContent: 'space-between', 
+          gap: '8px'
+        }}>
+          {[
+            { label: 'Present', value: '24', color: '#4ADE80' },
+            { label: 'Halfday', value: '02', color: '#FFE76B' },
+            { label: 'Absent', value: '01', color: '#FD6579' },
+            { label: 'P. Leave', value: '03', color: '#4484FF' }
+          ].map((stat, i) => (
+            <div key={i} style={{ 
+              flex: 1, 
+              backgroundColor: '#363636', 
+              borderRadius: '16px', 
+              padding: '12px 4px', 
+              display: 'flex', 
+              flexDirection: 'column', 
+              alignItems: 'center',
+              justifyContent: 'center',
+              position: 'relative',
+              overflow: 'hidden'
+            }}>
+              <div className="top-right-pattern" style={{ opacity: 0.15, right: 'auto', left: '-10px', top: '-10px', zIndex: 0 }}></div>
+              <MeteorShower />
+              <span className="stat-val" style={{ color: stat.color, fontWeight: 'bold', zIndex: 1, position: 'relative' }}>{stat.value}</span>
+              <span className="stat-lbl" style={{ color: 'rgba(255,255,255,0.6)', marginTop: '4px', whiteSpace: 'nowrap', zIndex: 1, position: 'relative' }}>{stat.label}</span>
+            </div>
+          ))}
+        </div>
       </div>
 
       {/* Horizontal Line Graph (Segmented Progress Bar for the 4 stats) */}
@@ -403,7 +377,7 @@ export default function SummarySection() {
         {/* Labels Above Bar */}
         <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '10px' }}>
           <span style={{ color: 'rgba(255,255,255,0.6)', fontSize: '13px', fontWeight: '500' }}>Justification</span>
-          <span style={{ color: '#fff', fontSize: '13px', fontWeight: 'bold' }}>80%</span>
+          <span style={{ color: 'var(--text-color)', fontSize: '13px', fontWeight: 'bold' }}>80%</span>
         </div>
 
         <div style={{ 
@@ -421,7 +395,7 @@ export default function SummarySection() {
       </div>
 
       {/* Two Transparent Border Divs */}
-      <div style={{
+      <div className="buttons-row" style={{
         display: 'flex',
         gap: '12px',
         marginTop: '20px',
@@ -453,7 +427,7 @@ export default function SummarySection() {
             left: isJustificationTick ? '16px' : '46px',
             transform: 'translateY(-50%)',
             transition: 'left 0.3s ease',
-            color: '#fff', 
+            color: 'var(--text-color)', 
             fontSize: '13px', 
             fontWeight: '500',
             whiteSpace: 'nowrap'
@@ -507,7 +481,7 @@ export default function SummarySection() {
             left: isClAppliedTick ? '16px' : '46px',
             transform: 'translateY(-50%)',
             transition: 'left 0.3s ease',
-            color: '#fff', 
+            color: 'var(--text-color)', 
             fontSize: '13px', 
             fontWeight: '500',
             whiteSpace: 'nowrap'
@@ -536,6 +510,24 @@ export default function SummarySection() {
             </svg>
           </div>
         </div>
+
+        {/* Extra Paid Amount Div (Desktop Only) */}
+        <div className="desktop-only" style={{
+          flex: 1,
+          height: '48px',
+          position: 'relative',
+          border: '2px solid rgba(255, 255, 255, 0.15)',
+          borderRadius: '30px',
+          backgroundColor: 'transparent',
+          userSelect: 'none',
+          WebkitUserSelect: 'none'
+        }}>
+          <div style={{ display: 'flex', width: '100%', height: '100%', alignItems: 'center', justifyContent: 'space-between', padding: '0 20px', boxSizing: 'border-box' }}>
+            <p style={{ color: 'rgba(255,255,255,0.6)', fontSize: '13px', fontWeight: '500' }}>Extra Paid</p>
+            <p style={{ color: '#4ADE80', fontSize: '15px', fontWeight: 'bold' }}>₹4,500</p>
+          </div>
+        </div>
+
       </div>
 
     </div>

@@ -11,6 +11,7 @@ import CalendarSection from '@/components/CalendarSection';
 import AllRecordsSection from '@/components/AllRecordsSection';
 import Footer from '@/components/Footer';
 import AuthHashCleaner from '@/components/AuthHashCleaner';
+import TwinklingStars from '@/components/TwinklingStars';
 
 export default function Home() {
   const row1 = [
@@ -24,22 +25,29 @@ export default function Home() {
   ];
 
   return (
-    <main style={{ position: 'relative', overflowX: 'hidden', paddingBottom: '100px', backgroundColor: 'var(--color-bg)' }}>
+    <main className="page-fade-in" style={{ position: 'relative', paddingBottom: '100px', backgroundColor: 'var(--color-bg)' }}>
       <AuthHashCleaner />
+      <TwinklingStars density="low" />
       <div className="top-right-pattern"></div>
       <LogoutButton />
       <Greeting />
       <DateBanner />
       <HeroCard />
-      <CheckoutSlider />
+      <div className="mobile-only">
+        <CheckoutSlider />
+      </div>
       
-      <div style={{ marginTop: '32px' }}>
+      <div className="mobile-only" style={{ marginTop: '32px' }}>
         <AttendanceHeader />
-
         <CarouselCards cards={row1} />
         <div style={{ marginTop: '-40px' }}> {/* Negative margin to reduce the gap between rows */}
           <CarouselCards cards={row2} />
         </div>
+      </div>
+
+      <div className="desktop-only" style={{ marginTop: '32px', padding: '0 24px' }}>
+        <AttendanceHeader />
+        <CarouselCards cards={[...row1, ...row2]} />
       </div>
       
       <ActivitySection />
