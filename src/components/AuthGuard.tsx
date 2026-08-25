@@ -8,8 +8,8 @@ import MobileNav from '@/components/MobileNav';
 export default function AuthGuard({ children }: { children: React.ReactNode }) {
   const router = useRouter();
   const pathname = usePathname();
-  const isPublicRoute = pathname === '/login' || pathname === '/signup' || pathname === '/forgot-password' || pathname === '/reset-password';
-  const [isAuthorized, setIsAuthorized] = useState(isPublicRoute);
+  const isPublic = pathname === '/login' || pathname === '/signup' || pathname === '/forgot-password' || pathname === '/reset-password';
+  const [isAuthorized, setIsAuthorized] = useState(isPublic);
   
   // Scroll tracking and auto-hide state for MobileNav
   const [isNavVisible, setIsNavVisible] = useState(true);
@@ -125,8 +125,6 @@ export default function AuthGuard({ children }: { children: React.ReactNode }) {
 
     return () => subscription.unsubscribe();
   }, [pathname, router]);
-
-  const isPublic = pathname === '/login' || pathname === '/signup' || pathname === '/forgot-password' || pathname === '/reset-password';
 
   if (!isAuthorized && !isPublic) {
     return (

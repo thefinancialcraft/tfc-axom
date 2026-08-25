@@ -26,10 +26,10 @@ export default function MobileNav({ isVisible = true, onInteractStart, onInterac
 
   const navItems = [
     { label: 'Home', icon: <LayoutDashboard size={22} />, href: '/dashboard' },
-    { label: 'Attendance', icon: <ClipboardList size={22} />, href: '/attendance-records' },
-    { label: 'Activity', icon: <Activity size={22} />, href: '/attendance-activities' },
-    { label: 'Salary', icon: <Wallet size={22} />, href: '/salary' },
-    { label: 'Users', icon: <Users size={22} />, href: '/users' },
+    { label: 'Attendance', icon: <ClipboardList size={22} />, href: '/attendance/records' },
+    { label: 'Activity', icon: <Activity size={22} />, href: '/attendance/activities' },
+    { label: 'Salary', icon: <Wallet size={22} />, href: '/attendance/salary' },
+    { label: 'Users', icon: <Users size={22} />, href: '/users/live-users' },
     { label: 'Profile', icon: <User size={22} />, href: '/profile' },
   ];
 

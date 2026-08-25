@@ -38,6 +38,7 @@ export async function createAuthUserAdmin(userData: {
   email: string;
   phone?: string;
   user_name: string;
+  father_name?: string;
   password?: string;
   role?: string;
   employee_id?: string;
@@ -53,8 +54,47 @@ export async function createAuthUserAdmin(userData: {
   }
 
   const tempPassword = userData.password || 'TfcAxomPassword123!';
+
+  // Check if phone number is already registered in user_profiles
+  if (userData.phone) {
+    const { data: existingPhone } = await supabaseAdmin
+      .from('user_profiles')
+      .select('user_id')
+      .eq('phone', userData.phone)
+      .limit(1);
+
+    if (existingPhone && existingPhone.length > 0) {
+      return { success: false, error: 'Phone number already registered by another user' };
+    }
+  }
+
+  // Check if email is already registered in user_profiles
+  if (userData.email) {
+    const { data: existingEmail } = await supabaseAdmin
+      .from('user_profiles')
+      .select('user_id')
+      .eq('email', userData.email)
+      .limit(1);
+
+    if (existingEmail && existingEmail.length > 0) {
+      return { success: false, error: 'A user with this email address has already been registered' };
+    }
+  }
+
+  // Check if Employee ID is already assigned to another user
+  if (userData.employee_id) {
+    const { data: existingEmpId } = await supabaseAdmin
+      .from('user_profiles')
+      .select('user_id')
+      .eq('employee_id', userData.employee_id)
+      .limit(1);
+
+    if (existingEmpId && existingEmpId.length > 0) {
+      return { success: false, error: `This Employee ID (${userData.employee_id}) is already assigned to another user.` };
+    }
+  }
   
-  // Create user in Auth
+  // Create user in Auth (email_confirm: true creates verified account without sending email OTP)
   const { data: authData, error: authError } = await supabaseAdmin.auth.admin.createUser({
     email: userData.email,
     password: tempPassword,
@@ -63,6 +103,7 @@ export async function createAuthUserAdmin(userData: {
     phone_confirm: !!userData.phone,
     user_metadata: {
       full_name: userData.user_name,
+      father_name: userData.father_name || undefined
     }
   });
 
@@ -76,10 +117,11 @@ export async function createAuthUserAdmin(userData: {
   // Create user profile in user_profiles
   const { error: profileError } = await supabaseAdmin
     .from('user_profiles')
-    .insert({
+    .upsert({
       user_id: userId,
       email: userData.email,
       user_name: userData.user_name,
+      father_name: userData.father_name || null,
       phone: userData.phone || null,
       role: userData.role || 'Employee',
       employee_id: userData.employee_id || null,
@@ -90,7 +132,7 @@ export async function createAuthUserAdmin(userData: {
       status: userData.status || 'Active',
       approval_status: userData.approval_status || 'Approved',
       profile_complete: false,
-    });
+    }, { onConflict: 'user_id' });
 
   if (profileError) {
     console.error('Admin create user profile error:', profileError);
@@ -146,5 +188,36 @@ export async function updateUserProfileAdmin(userId: string, profileUpdates: any
   }
 
   return { success: true, data };
+}
+
+export async function getNextEmployeeIdAction() {
+  if (!supabaseServiceKey) {
+    return { success: true, nextEmployeeId: 'TFC-001' };
+  }
+
+  const { data } = await supabaseAdmin
+    .from('user_profiles')
+    .select('employee_id')
+    .not('employee_id', 'is', null);
+
+  let maxNum = 0;
+
+  if (data && data.length > 0) {
+    data.forEach((row: { employee_id: string | null }) => {
+      if (row.employee_id) {
+        const match = row.employee_id.match(/\d+/);
+        if (match) {
+          const num = parseInt(match[0], 10);
+          if (num > maxNum) {
+            maxNum = num;
+          }
+        }
+      }
+    });
+  }
+
+  const nextNum = maxNum + 1;
+  const padded = String(nextNum).padStart(3, '0');
+  return { success: true, nextEmployeeId: `TFC-${padded}` };
 }
 

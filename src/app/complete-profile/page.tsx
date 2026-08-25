@@ -431,7 +431,8 @@ export default function CompleteProfilePage() {
           aadhar_back_url: aadharBackUrl,
           pan_card_no: panCardNo.trim(),
           pan_card_url: panCardUrl,
-          qualification_marksheet_url: qualificationMarksheetUrl
+          qualification_marksheet_url: qualificationMarksheetUrl,
+          profile_complete: true
         })
         .eq('user_id', session.user.id);
         
@@ -451,6 +452,13 @@ export default function CompleteProfilePage() {
       const result = await getUserProfile();
       if (result) {
         const { session, profile } = result;
+
+        // Redirect directly to dashboard if profile is already complete
+        if (profile && (profile.profile_complete === true || profile.is_profile_completed === true)) {
+          router.replace('/dashboard');
+          return;
+        }
+
         const authName = session.user.user_metadata?.full_name || session.user.user_metadata?.name || 'User';
         
         if (profile) setOriginalProfile(profile);

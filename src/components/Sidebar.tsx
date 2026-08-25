@@ -1,11 +1,42 @@
 'use client';
 import React, { useEffect, useState } from 'react';
 import Link from 'next/link';
-import { usePathname } from 'next/navigation';
-import { LayoutDashboard, User, Wallet, CalendarOff, ClipboardList, Activity, LogOut, Users } from 'lucide-react';
+import { usePathname, useRouter } from 'next/navigation';
+import {
+  LayoutDashboard,
+  ClipboardList,
+  Activity,
+  CalendarOff,
+  Wallet,
+  Briefcase,
+  Clock,
+  FileText,
+  TrendingUp,
+  DollarSign,
+  Users,
+  UserPlus,
+  UserCheck,
+  UserX,
+  ChevronDown,
+  ChevronRight,
+  LogOut,
+  User
+} from 'lucide-react';
 import { supabase } from '@/lib/supabase';
-import { useRouter } from 'next/navigation';
 import { getUserProfile } from '@/lib/profile';
+
+interface SubNavItem {
+  label: string;
+  href: string;
+  icon: React.ReactNode;
+}
+
+interface NavCategory {
+  id: string;
+  title: string;
+  icon: React.ReactNode;
+  items: SubNavItem[];
+}
 
 export default function Sidebar() {
   const pathname = usePathname();
@@ -13,6 +44,13 @@ export default function Sidebar() {
   const [profileData, setProfileData] = useState<any>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [isLoggingOut, setIsLoggingOut] = useState(false);
+
+  // State to manage open/collapsed categories
+  const [openCategories, setOpenCategories] = useState<{ [key: string]: boolean }>({
+    attendance: true,
+    'hr-management': true,
+    users: true,
+  });
 
   useEffect(() => {
     const fetchProfile = async () => {
@@ -25,23 +63,75 @@ export default function Sidebar() {
     fetchProfile();
   }, []);
 
+  const navCategories: NavCategory[] = [
+    {
+      id: 'attendance',
+      title: 'Attendance',
+      icon: <ClipboardList size={18} />,
+      items: [
+        { label: 'Attendance Record', href: '/attendance/records', icon: <ClipboardList size={15} /> },
+        { label: 'Activities', href: '/attendance/activities', icon: <Activity size={15} /> },
+        { label: 'Paid Leaves', href: '/attendance/paid-leaves', icon: <CalendarOff size={15} /> },
+        { label: 'Salary', href: '/attendance/salary', icon: <Wallet size={15} /> },
+      ]
+    },
+    {
+      id: 'hr-management',
+      title: 'H.R & Management',
+      icon: <Briefcase size={18} />,
+      items: [
+        { label: 'Employees', href: '/hr/employees', icon: <Users size={15} /> },
+        { label: 'Attendance', href: '/hr/attendance', icon: <Clock size={15} /> },
+        { label: 'Recruitment', href: '/hr/recruitment', icon: <FileText size={15} /> },
+        { label: 'Performance', href: '/hr/performance', icon: <TrendingUp size={15} /> },
+        { label: 'Payroll', href: '/hr/payroll', icon: <DollarSign size={15} /> },
+      ]
+    },
+    {
+      id: 'users',
+      title: 'Users',
+      icon: <Users size={18} />,
+      items: [
+        { label: 'Add New', href: '/users/add', icon: <UserPlus size={15} /> },
+        { label: 'Live Users', href: '/users/live-users', icon: <UserCheck size={15} /> },
+        { label: 'Rejected Users', href: '/users/rejected', icon: <UserX size={15} /> },
+      ]
+    }
+  ];
+
+  // Auto-expand category if current route is inside it
+  useEffect(() => {
+    navCategories.forEach(category => {
+      const hasActiveChild = category.items.some(item =>
+        pathname === item.href || (item.href !== '/' && item.href !== '/users' && pathname.startsWith(item.href))
+      );
+      if (hasActiveChild) {
+        setOpenCategories(prev => ({ ...prev, [category.id]: true }));
+      }
+    });
+  }, [pathname]);
+
+  const toggleCategory = (id: string) => {
+    setOpenCategories(prev => ({
+      ...prev,
+      [id]: !prev[id]
+    }));
+  };
+
   const handleLogout = async () => {
     setIsLoggingOut(true);
     await supabase.auth.signOut();
     router.push('/login');
   };
 
-  const navItems = [
-    { label: 'Dashboard', icon: <LayoutDashboard size={20} />, href: '/dashboard' },
-    { label: 'Activities', icon: <Activity size={20} />, href: '/attendance-activities' },
-    { label: 'Attendance', icon: <ClipboardList size={20} />, href: '/attendance-records' },
-    { label: 'Paid Leaves', icon: <CalendarOff size={20} />, href: '/paid-leaves' },
-    { label: 'Salary', icon: <Wallet size={20} />, href: '/salary' },
-    { label: 'Users', icon: <Users size={20} />, href: '/users' },
-  ];
-
   // Don't show sidebar on auth pages or complete profile
-  if (pathname === '/login' || pathname === '/signup' || pathname === '/complete-profile' || pathname === '/forgot-password' || pathname === '/reset-password') {
+  if (
+    pathname === '/login' ||
+    pathname === '/signup' ||
+    pathname === '/complete-profile' ||
+    pathname === '/forgot-password' ||
+    pathname === '/reset-password'
+  ) {
     return null;
   }
 
@@ -51,6 +141,13 @@ export default function Sidebar() {
   const email = profile?.email || session?.user?.email || '';
   const avatarUrl = profile?.profile_pic_url || "/dm-hr.png";
 
+  const isItemActive = (href: string) => {
+    if (href === '/dashboard' || href === '/users') {
+      return pathname === href;
+    }
+    return pathname === href || pathname.startsWith(href + '/');
+  };
+
   return (
     <aside className="app-sidebar">
       <div className="sidebar-header" style={{ padding: '24px 20px', display: 'flex', justifyContent: 'center' }}>
@@ -58,17 +155,61 @@ export default function Sidebar() {
       </div>
 
       <nav className="sidebar-nav">
-        {navItems.map((item) => {
-          const isActive = pathname === item.href || pathname.startsWith(item.href + '/');
+        {/* Main Dashboard Link */}
+        <div style={{ marginBottom: '8px' }}>
+          <Link
+            href="/dashboard"
+            className={`sidebar-link ${isItemActive('/dashboard') ? 'active' : ''}`}
+          >
+            <LayoutDashboard size={18} />
+            <span>Dashboard</span>
+          </Link>
+        </div>
+
+        {/* Categories */}
+        {navCategories.map((category) => {
+          const isOpen = openCategories[category.id];
+          const hasActiveChild = category.items.some(item => isItemActive(item.href));
+
           return (
-            <Link key={item.label} href={item.href} className={`sidebar-link ${isActive ? 'active' : ''}`}>
-              {item.icon}
-              <span>{item.label}</span>
-            </Link>
+            <div key={category.id} className="sidebar-category-group">
+              <button
+                type="button"
+                className={`sidebar-category-btn ${hasActiveChild ? 'has-active' : ''}`}
+                onClick={() => toggleCategory(category.id)}
+              >
+                <div className="sidebar-category-left">
+                  <span className="sidebar-category-icon">{category.icon}</span>
+                  <span className="sidebar-category-title">{category.title}</span>
+                </div>
+                <span className="sidebar-category-chevron">
+                  {isOpen ? <ChevronDown size={15} /> : <ChevronRight size={15} />}
+                </span>
+              </button>
+
+              {isOpen && (
+                <div className="sidebar-subnav-container">
+                  {category.items.map((item) => {
+                    const isActive = isItemActive(item.href);
+                    return (
+                      <Link
+                        key={item.label}
+                        href={item.href}
+                        className={`sidebar-sublink ${isActive ? 'active' : ''}`}
+                      >
+                        <span className="sidebar-sublink-icon">{item.icon}</span>
+                        <span>{item.label}</span>
+                      </Link>
+                    );
+                  })}
+                </div>
+              )}
+            </div>
           );
         })}
       </nav>
 
+      {/* Footer Profile & Logout */}
       <div className="sidebar-footer" style={{ padding: '16px 16px', borderTop: '1px solid rgba(255, 255, 255, 0.05)' }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '12px', padding: '16px 10px', background: 'rgba(255,255,255,0.03)', borderRadius: '16px', border: '1px solid rgba(255,255,255,0.05)', backdropFilter: 'blur(12px)', WebkitBackdropFilter: 'blur(12px)' }}>
           <img
