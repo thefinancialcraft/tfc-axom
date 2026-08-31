@@ -1145,7 +1145,7 @@ function DynamicApplyFormContent() {
       </div>
 
       <div style={{ padding: '0 24px', marginTop: '20px', width: '100%', maxWidth: '1100px', margin: '20px auto 0 auto' }}>
-        {submitted ? (
+        {submitted || isAlreadySubmitted ? (
           <div className={styles.contentCard} style={{
             borderRadius: '28px',
             padding: '54px 36px',
