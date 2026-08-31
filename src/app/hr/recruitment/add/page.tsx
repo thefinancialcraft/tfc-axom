@@ -762,9 +762,43 @@ export default function AddCandidatePage() {
       const finalSource = formData.source === 'Employee ref (EMP_ID)'
         ? `Employee Ref (${formData.employee_ref_id || 'N/A'})`
         : (formData.source === 'Others' ? (formData.source_other || 'Others') : formData.source);
-      const finalInterviewTime = formData.interview_availability === 'Immediate (tomorrow 11am to 4pm)'
-        ? 'Immediate (Tomorrow 11 AM - 4 PM)'
-        : (formData.interview_custom_time || 'Custom Schedule Requested');
+
+      let finalInterviewTime = formData.interview_availability;
+      if (formData.interview_availability.startsWith('Immediate')) {
+        finalInterviewTime = `Immediate (${immediateDay} at ${immediateSlot})`;
+      } else if (formData.interview_custom_time) {
+        finalInterviewTime = formData.interview_custom_time;
+      }
+
+      // Calculate ISO 8601 Timestamp for interview_timestamp column
+      let calculatedIsoTimestamp = new Date().toISOString();
+      try {
+        const dateObj = new Date();
+        if (formData.interview_availability.startsWith('Immediate')) {
+          if (immediateDay === 'Tomorrow') {
+            dateObj.setDate(dateObj.getDate() + 1);
+          }
+          let h = 11;
+          let m = 0;
+          const slotMatch = immediateSlot.match(/(\d{1,2}):?(\d{2})?\s*(AM|PM)/i);
+          if (slotMatch) {
+            h = parseInt(slotMatch[1], 10);
+            m = slotMatch[2] ? parseInt(slotMatch[2], 10) : 0;
+            const ampm = slotMatch[3].toUpperCase();
+            if (ampm === 'PM' && h < 12) h += 12;
+            if (ampm === 'AM' && h === 12) h = 0;
+          }
+          dateObj.setHours(h, m, 0, 0);
+          calculatedIsoTimestamp = dateObj.toISOString();
+        } else if (formData.interview_custom_time) {
+          const parsed = new Date(formData.interview_custom_time);
+          if (!isNaN(parsed.getTime())) {
+            calculatedIsoTimestamp = parsed.toISOString();
+          }
+        }
+      } catch (tErr) {
+        console.error('Timestamp calculation error:', tErr);
+      }
 
       const finalSalary = formData.experience !== 'Fresher' ? (formData.last_in_hand_salary.trim() || null) : null;
 
@@ -781,58 +815,58 @@ export default function AddCandidatePage() {
         finalShareable = existingRec.shareable_link;
       }
 
+      const supabasePayload = {
+        first_name: formData.first_name.trim(),
+        last_name: formData.last_name.trim() || null,
+        name: fullName,
+        father_name: formData.father_name.trim() || null,
+        email: formData.email.trim() || null,
+        phone: formData.phone.trim() || null,
+        role: formData.role,
+        experience: formData.experience,
+        last_salary: finalSalary,
+        qualification: finalQualification,
+        qualification_other: formData.qualification_other.trim() || null,
+        institution_name: formData.institution_name.trim() || null,
+        source: finalSource,
+        employee_ref_id: formData.employee_ref_id.trim() || null,
+        source_other: formData.source_other.trim() || null,
+        interview_time: finalInterviewTime,
+        interview_timestamp: calculatedIsoTimestamp,
+        cv_url: finalCvUrl,
+        cv_file_name: cvFile ? cvFile.name : null,
+        shareable_link: finalShareable,
+        ref_id: candidateCode,
+        details_submitted: true
+      };
+
       if (existingRec?.id) {
         // Update pre-generated lead row with submitted details & cv_url
         const { error: updateErr } = await supabase
           .from('recruitment')
-          .update({
-            first_name: formData.first_name.trim(),
-            last_name: formData.last_name.trim() || null,
-            name: fullName,
-            father_name: formData.father_name.trim() || null,
-            email: formData.email.trim() || null,
-            phone: formData.phone.trim() || null,
-            role: formData.role,
-            experience: formData.experience,
-            last_salary: finalSalary,
-            qualification: finalQualification,
-            institution_name: formData.institution_name.trim() || null,
-            source: finalSource,
-            interview_time: finalInterviewTime,
-            stage: 'Lead',
-            cv_file_name: cvValueToStore,
-            shareable_link: finalShareable,
-            ref_id: candidateCode,
-            details_submitted: true
-          })
+          .update(supabasePayload)
           .eq('id', existingRec.id);
 
-        if (updateErr) console.error('Supabase recruitment update error:', updateErr);
+        if (updateErr) {
+          console.error('Supabase recruitment update error:', updateErr);
+          setErrorMessage(`Database update failed: ${updateErr.message}`);
+          setLoading(false);
+          return;
+        }
       } else {
         // Insert new record if not pre-generated
         const { error: dbError } = await supabase.from('recruitment').insert([{
+          ...supabasePayload,
           candidate_id: candidateCode,
-          ref_id: candidateCode,
-          first_name: formData.first_name.trim(),
-          last_name: formData.last_name.trim() || null,
-          name: fullName,
-          father_name: formData.father_name.trim() || null,
-          email: formData.email.trim() || null,
-          phone: formData.phone.trim() || null,
-          role: formData.role,
-          experience: formData.experience,
-          last_salary: finalSalary,
-          qualification: finalQualification,
-          institution_name: formData.institution_name.trim() || null,
-          source: finalSource,
-          interview_time: finalInterviewTime,
-          stage: 'Lead',
-          cv_file_name: cvValueToStore,
-          shareable_link: finalShareable,
-          details_submitted: true
+          stage: 'Lead'
         }]);
 
-        if (dbError) console.error('Supabase recruitment insert error:', dbError);
+        if (dbError) {
+          console.error('Supabase recruitment insert error:', dbError);
+          setErrorMessage(`Database insertion failed: ${dbError.message}`);
+          setLoading(false);
+          return;
+        }
       }
 
       setSuccessMessage(`Candidate "${fullName}" added successfully!`);
