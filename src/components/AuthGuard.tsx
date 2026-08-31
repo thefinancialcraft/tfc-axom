@@ -8,7 +8,10 @@ import MobileNav from '@/components/MobileNav';
 export default function AuthGuard({ children }: { children: React.ReactNode }) {
   const router = useRouter();
   const pathname = usePathname();
-  const isPublic = pathname === '/login' || pathname === '/signup' || pathname === '/forgot-password' || pathname === '/reset-password';
+  const isAuthPage = pathname === '/login' || pathname === '/signup' || pathname === '/forgot-password';
+  const isApplyPage = pathname ? pathname.includes('/apply') : false;
+  const isProfilePdfPage = pathname ? (pathname.includes('/profile=') || pathname.includes('/candidate/')) : false;
+  const isPublic = isAuthPage || pathname === '/reset-password' || isApplyPage || isProfilePdfPage;
   const [isAuthorized, setIsAuthorized] = useState(isPublic);
   
   // Scroll tracking and auto-hide state for MobileNav
@@ -70,7 +73,7 @@ export default function AuthGuard({ children }: { children: React.ReactNode }) {
             setIsAuthorized(true);
           }
         } else {
-          if (isPublic && pathname !== '/reset-password') {
+          if (isAuthPage) {
             router.replace('/dashboard');
           } else {
             setIsAuthorized(true);
@@ -84,11 +87,9 @@ export default function AuthGuard({ children }: { children: React.ReactNode }) {
     const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
       if (_event === 'INITIAL_SESSION') return;
       
-      const isCurrentlyPublic = pathname === '/login' || pathname === '/signup' || pathname === '/forgot-password' || pathname === '/reset-password';
-      
       if (!session) {
         localStorage.removeItem('recovery_pending_for');
-        if (!isCurrentlyPublic) {
+        if (!isPublic) {
           router.replace('/login');
         }
       } else {
@@ -114,7 +115,7 @@ export default function AuthGuard({ children }: { children: React.ReactNode }) {
             setIsAuthorized(true);
           }
         } else {
-          if (isCurrentlyPublic && pathname !== '/reset-password') {
+          if (isAuthPage) {
             router.replace('/dashboard');
           } else {
             setIsAuthorized(true);

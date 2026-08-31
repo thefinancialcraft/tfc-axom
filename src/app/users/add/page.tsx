@@ -23,7 +23,10 @@ import {
   X,
   Lock,
   Eye,
-  EyeOff
+  EyeOff,
+  UploadCloud,
+  FileText,
+  Trash2
 } from 'lucide-react';
 import Header from '@/components/Header';
 import Footer from '@/components/Footer';
@@ -205,6 +208,35 @@ export default function AddNewUserPage() {
     email: '',
     link: ''
   });
+
+  // CV / Resume Drag & Drop State
+  const [cvFile, setCvFile] = useState<File | null>(null);
+  const [isDragging, setIsDragging] = useState(false);
+  const cvInputRef = useRef<HTMLInputElement>(null);
+
+  const handleFileDrop = (e: React.DragEvent<HTMLDivElement>) => {
+    e.preventDefault();
+    setIsDragging(false);
+    if (e.dataTransfer.files && e.dataTransfer.files[0]) {
+      const file = e.dataTransfer.files[0];
+      if (file.size > 10 * 1024 * 1024) {
+        setErrorMessage('File size exceeds 10MB limit!');
+        return;
+      }
+      setCvFile(file);
+    }
+  };
+
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (e.target.files && e.target.files[0]) {
+      const file = e.target.files[0];
+      if (file.size > 10 * 1024 * 1024) {
+        setErrorMessage('File size exceeds 10MB limit!');
+        return;
+      }
+      setCvFile(file);
+    }
+  };
 
   // Form State
   const [formData, setFormData] = useState({
@@ -682,6 +714,120 @@ export default function AddNewUserPage() {
                   placeholder="TFC-001"
                   style={inputFieldStyle}
                 />
+              </div>
+
+              {/* Drag & Drop CV / Resume Upload */}
+              <div className={styles.formGroup} style={{ gridColumn: '1 / -1', marginTop: '24px' }}>
+                <label style={{ ...labelStyle, marginBottom: '12px' }}>
+                  Upload CV / Resume <span style={{ color: 'rgba(255, 255, 255, 0.4)', fontSize: '13px', fontWeight: 400 }}>(Optional - PDF, DOC, DOCX)</span>
+                </label>
+                <input 
+                  type="file" 
+                  ref={cvInputRef} 
+                  onChange={handleFileChange} 
+                  accept=".pdf,.doc,.docx" 
+                  style={{ display: 'none' }} 
+                />
+                
+                {!cvFile ? (
+                  <div
+                    onDragOver={(e) => { e.preventDefault(); setIsDragging(true); }}
+                    onDragLeave={(e) => { e.preventDefault(); setIsDragging(false); }}
+                    onDrop={handleFileDrop}
+                    onClick={() => cvInputRef.current?.click()}
+                    style={{
+                      border: isDragging ? '2px dashed #34BB88' : '2px dashed rgba(255, 255, 255, 0.15)',
+                      background: isDragging ? 'rgba(52, 187, 136, 0.08)' : 'rgba(255, 255, 255, 0.02)',
+                      borderRadius: '18px',
+                      padding: '48px 24px',
+                      minHeight: '160px',
+                      textAlign: 'center',
+                      cursor: 'pointer',
+                      transition: 'all 0.2s ease',
+                      display: 'flex',
+                      flexDirection: 'column',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      gap: '14px'
+                    }}
+                  >
+                    <div style={{
+                      width: '56px',
+                      height: '56px',
+                      borderRadius: '14px',
+                      background: isDragging ? 'rgba(52, 187, 136, 0.2)' : 'rgba(255, 255, 255, 0.05)',
+                      border: '1px solid rgba(255, 255, 255, 0.1)',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      color: isDragging ? '#34BB88' : 'rgba(255, 255, 255, 0.6)'
+                    }}>
+                      <UploadCloud size={28} />
+                    </div>
+                    <div>
+                      <p style={{ margin: 0, fontSize: '14px', color: '#FFFFFF', fontWeight: '500' }}>
+                        Drag & drop CV/Resume here, or <span style={{ color: '#34BB88', fontWeight: '600', textDecoration: 'underline' }}>Browse File</span>
+                      </p>
+                      <p style={{ margin: '4px 0 0 0', fontSize: '12px', color: 'rgba(255, 255, 255, 0.4)' }}>
+                        Supports PDF, DOC, DOCX (Max size: 10MB)
+                      </p>
+                    </div>
+                  </div>
+                ) : (
+                  <div style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'space-between',
+                    padding: '16px 20px',
+                    background: 'rgba(52, 187, 136, 0.08)',
+                    border: '1px solid rgba(52, 187, 136, 0.3)',
+                    borderRadius: '16px'
+                  }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '14px' }}>
+                      <div style={{
+                        width: '42px',
+                        height: '42px',
+                        borderRadius: '10px',
+                        background: 'rgba(52, 187, 136, 0.2)',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        color: '#34BB88'
+                      }}>
+                        <FileText size={22} />
+                      </div>
+                      <div>
+                        <div style={{ fontSize: '14px', fontWeight: '600', color: '#FFFFFF', display: 'flex', alignItems: 'center', gap: '8px' }}>
+                          <span>{cvFile.name}</span>
+                          <span style={{ fontSize: '11px', background: 'rgba(52, 187, 136, 0.2)', color: '#34BB88', padding: '2px 8px', borderRadius: '10px', fontWeight: '600' }}>Uploaded ✓</span>
+                        </div>
+                        <div style={{ fontSize: '12px', color: 'rgba(255, 255, 255, 0.5)', marginTop: '2px' }}>
+                          {(cvFile.size / (1024 * 1024)).toFixed(2)} MB
+                        </div>
+                      </div>
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() => setCvFile(null)}
+                      style={{
+                        background: 'rgba(239, 68, 68, 0.1)',
+                        border: '1px solid rgba(239, 68, 68, 0.2)',
+                        color: '#EF4444',
+                        width: '34px',
+                        height: '34px',
+                        borderRadius: '10px',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        cursor: 'pointer',
+                        transition: 'all 0.2s ease'
+                      }}
+                      title="Remove CV"
+                    >
+                      <Trash2 size={16} />
+                    </button>
+                  </div>
+                )}
               </div>
 
             </div>
