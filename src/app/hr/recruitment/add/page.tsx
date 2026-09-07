@@ -540,6 +540,20 @@ export default function AddCandidatePage() {
   const [isDragging, setIsDragging] = useState(false);
   const cvInputRef = useRef<HTMLInputElement>(null);
 
+  // Additional Document States (Profile Pic, Aadhaar Front/Back, PAN, Address Proof)
+  const [profilePicFile, setProfilePicFile] = useState<File | null>(null);
+  const [aadhaarFrontFile, setAadhaarFrontFile] = useState<File | null>(null);
+  const [aadhaarBackFile, setAadhaarBackFile] = useState<File | null>(null);
+  const [panCardFile, setPanCardFile] = useState<File | null>(null);
+  const [addressProofFile, setAddressProofFile] = useState<File | null>(null);
+  const [addressProofType, setAddressProofType] = useState<string>('Electricity Bill');
+
+  const profilePicRef = useRef<HTMLInputElement>(null);
+  const aadhaarFrontRef = useRef<HTMLInputElement>(null);
+  const aadhaarBackRef = useRef<HTMLInputElement>(null);
+  const panCardRef = useRef<HTMLInputElement>(null);
+  const addressProofRef = useRef<HTMLInputElement>(null);
+
   const handleFileDrop = (e: React.DragEvent<HTMLDivElement>) => {
     e.preventDefault();
     setIsDragging(false);
@@ -732,29 +746,37 @@ export default function AddCandidatePage() {
       const baseUrl = typeof window !== 'undefined' ? window.location.origin : 'http://localhost:3000';
       const shareableUrl = `${baseUrl}/${alphaNumeric14}/apply?ref=${candidateCode}`;
 
-      // Upload CV file to Supabase Storage Bucket 'resumes'
-      let finalCvUrl = null;
-      if (cvFile) {
+      // Helper function to upload document to Supabase storage bucket 'resumes'
+      const uploadDoc = async (file: File | null, tag: string) => {
+        if (!file) return null;
         try {
-          const fileExt = cvFile.name.split('.').pop() || 'pdf';
-          const filePath = `${candidateCode}_${Date.now()}.${fileExt}`;
-
+          const fileExt = file.name.split('.').pop() || 'png';
+          const filePath = `${candidateCode}_${tag}_${Date.now()}.${fileExt}`;
           const { error: uploadErr } = await supabase.storage
             .from('resumes')
-            .upload(filePath, cvFile, { upsert: true });
+            .upload(filePath, file, { upsert: true });
 
           if (!uploadErr) {
             const { data: publicData } = supabase.storage
               .from('resumes')
               .getPublicUrl(filePath);
-            finalCvUrl = publicData?.publicUrl || null;
+            return publicData?.publicUrl || null;
           } else {
-            console.warn('Storage upload warning:', uploadErr.message);
+            console.warn(`Storage upload warning for ${tag}:`, uploadErr.message);
           }
         } catch (sErr) {
-          console.error('CV upload exception:', sErr);
+          console.error(`Upload exception for ${tag}:`, sErr);
         }
-      }
+        return null;
+      };
+
+      // Upload CV and documents
+      const finalCvUrl = await uploadDoc(cvFile, 'cv');
+      const finalProfilePicUrl = await uploadDoc(profilePicFile, 'profile_pic');
+      const finalAadhaarFrontUrl = await uploadDoc(aadhaarFrontFile, 'aadhaar_front');
+      const finalAadhaarBackUrl = await uploadDoc(aadhaarBackFile, 'aadhaar_back');
+      const finalPanCardUrl = await uploadDoc(panCardFile, 'pan_card');
+      const finalAddressProofUrl = await uploadDoc(addressProofFile, 'address_proof');
 
       const cvValueToStore = finalCvUrl || (cvFile ? cvFile.name : null);
 
@@ -835,6 +857,12 @@ export default function AddCandidatePage() {
         interview_timestamp: calculatedIsoTimestamp,
         cv_url: finalCvUrl,
         cv_file_name: cvFile ? cvFile.name : null,
+        profile_pic_url: finalProfilePicUrl,
+        aadhaar_front_url: finalAadhaarFrontUrl,
+        aadhaar_back_url: finalAadhaarBackUrl,
+        pan_card_url: finalPanCardUrl,
+        address_proof_url: finalAddressProofUrl,
+        address_proof_type: addressProofType,
         shareable_link: finalShareable,
         ref_id: candidateCode,
         details_submitted: true
@@ -1544,7 +1572,7 @@ export default function AddCandidatePage() {
             </div>
           </div>
 
-          {/* CATEGORY 4: RESUME / CV UPLOAD */}
+          {/* CATEGORY 4: CANDIDATE DOCUMENTS & VERIFICATION ATTACHMENTS */}
           <div className={styles.contentCard} style={{
             borderRadius: '24px',
             padding: '32px',
@@ -1562,101 +1590,498 @@ export default function AddCandidatePage() {
               </div>
               <div>
                 <h3 style={{ fontSize: '18px', fontWeight: '700', margin: 0, color: '#FFFFFF', display: 'flex', alignItems: 'center', gap: '8px' }}>
-                  <FileText size={20} style={{ color: '#F59E0B' }} />
-                  Resume / CV Document
+                  Candidate Documents & Verification Attachments
                 </h3>
-                <span style={{ fontSize: '13px', color: 'rgba(255,255,255,0.5)' }}>Upload candidate resume (Optional)</span>
+                <span style={{ fontSize: '13px', color: 'rgba(255,255,255,0.5)' }}>
+                  Upload Resume (PDF), Profile Picture, Aadhaar Card, PAN Card & Address Proof
+                </span>
               </div>
             </div>
 
-            <div className={styles.formGroup}>
-              <label style={{ ...labelStyle, marginBottom: '12px' }}>
-                Upload Candidate CV / Resume <span style={{ color: 'rgba(255, 255, 255, 0.4)', fontSize: '13px', fontWeight: 400 }}>(Optional - PDF format)</span>
-              </label>
-              <input 
-                type="file" 
-                ref={cvInputRef} 
-                onChange={handleFileChange} 
-                accept=".pdf,application/pdf" 
-                style={{ display: 'none' }} 
-              />
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: '20px' }}>
               
-              {!cvFile ? (
-                <div
-                  onDragOver={(e) => { e.preventDefault(); setIsDragging(true); }}
-                  onDragLeave={(e) => { e.preventDefault(); setIsDragging(false); }}
-                  onDrop={handleFileDrop}
-                  onClick={() => cvInputRef.current?.click()}
-                  style={{
-                    border: isDragging ? '2px dashed #34BB88' : '2px dashed rgba(255, 255, 255, 0.15)',
-                    background: isDragging ? 'rgba(52, 187, 136, 0.08)' : 'rgba(255, 255, 255, 0.02)',
-                    borderRadius: '18px',
-                    padding: '36px 20px',
-                    textAlign: 'center',
-                    cursor: 'pointer',
-                    transition: 'all 0.2s ease',
-                    display: 'flex',
-                    flexDirection: 'column',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    gap: '12px'
-                  }}
-                >
-                  <div style={{
-                    width: '52px',
-                    height: '52px',
-                    borderRadius: '16px',
-                    background: 'rgba(255, 255, 255, 0.05)',
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    color: '#34BB88'
-                  }}>
-                    <UploadCloud size={28} />
-                  </div>
+              {/* 1. RESUME / CV DOCUMENT (PDF) */}
+              <div style={{
+                backgroundColor: 'rgba(255, 255, 255, 0.02)',
+                border: '1px solid rgba(255, 255, 255, 0.1)',
+                borderRadius: '16px',
+                padding: '20px',
+                display: 'flex',
+                flexDirection: 'column',
+                gap: '12px'
+              }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
                   <div>
-                    <p style={{ margin: 0, fontSize: '15px', fontWeight: '600', color: '#FFFFFF' }}>
-                      Drag & drop candidate CV here, or <span style={{ color: '#34BB88', textDecoration: 'underline' }}>browse</span>
-                    </p>
-                    <p style={{ margin: '4px 0 0 0', fontSize: '13px', color: 'rgba(255, 255, 255, 0.4)' }}>
-                      Supports PDF documents up to 10MB
-                    </p>
+                    <label style={{ fontSize: '14px', fontWeight: '600', color: '#FFFFFF', display: 'block' }}>
+                      Resume / CV Document
+                    </label>
+                    <span style={{ fontSize: '11.5px', color: 'rgba(255,255,255,0.5)', fontWeight: '500' }}>
+                      PDF format up to 10MB
+                    </span>
                   </div>
+                  <span style={{ fontSize: '10.5px', background: 'rgba(245, 158, 11, 0.15)', color: '#F59E0B', padding: '2px 8px', borderRadius: '6px', fontWeight: '600' }}>
+                    PDF Resume
+                  </span>
                 </div>
-              ) : (
-                <div style={{
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'space-between',
-                  padding: '16px 20px',
-                  background: 'rgba(52, 187, 136, 0.08)',
-                  border: '1px solid rgba(52, 187, 136, 0.3)',
-                  borderRadius: '16px'
-                }}>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '14px' }}>
-                    <FileText size={24} style={{ color: '#34BB88' }} />
-                    <div>
-                      <div style={{ fontSize: '14px', fontWeight: 600, color: '#FFFFFF' }}>{cvFile.name}</div>
-                      <div style={{ fontSize: '12px', color: 'rgba(255, 255, 255, 0.5)' }}>{(cvFile.size / 1024).toFixed(1)} KB</div>
+
+                <input
+                  type="file"
+                  ref={cvInputRef}
+                  onChange={handleFileChange}
+                  accept=".pdf,application/pdf"
+                  style={{ display: 'none' }}
+                />
+
+                {cvFile ? (
+                  <div style={{
+                    backgroundColor: 'rgba(52, 187, 136, 0.1)',
+                    border: '1px solid rgba(52, 187, 136, 0.3)',
+                    borderRadius: '12px',
+                    padding: '12px',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'space-between'
+                  }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '10px', overflow: 'hidden' }}>
+                      <div style={{
+                        width: '36px', height: '36px', borderRadius: '8px',
+                        backgroundColor: 'rgba(52, 187, 136, 0.15)', color: '#34BB88',
+                        display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0
+                      }}>
+                        <FileText size={20} />
+                      </div>
+                      <div style={{ overflow: 'hidden' }}>
+                        <p style={{ margin: 0, fontSize: '13px', fontWeight: '600', color: '#FFFFFF', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                          {cvFile.name}
+                        </p>
+                        <span style={{ fontSize: '11px', color: '#34BB88' }}>
+                          {(cvFile.size / (1024 * 1024)).toFixed(2)} MB • PDF Attached
+                        </span>
+                      </div>
                     </div>
+                    <button
+                      type="button"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        setCvFile(null);
+                      }}
+                      style={{ background: 'none', border: 'none', color: '#EF4444', cursor: 'pointer', padding: '4px' }}
+                    >
+                      <Trash2 size={16} />
+                    </button>
                   </div>
+                ) : (
                   <button
                     type="button"
-                    onClick={() => setCvFile(null)}
+                    onClick={() => cvInputRef.current?.click()}
                     style={{
-                      background: 'rgba(239, 68, 68, 0.15)',
-                      border: 'none',
-                      borderRadius: '8px',
-                      color: '#EF4444',
-                      padding: '8px',
-                      cursor: 'pointer'
+                      padding: '18px',
+                      border: '1.5px dashed rgba(255, 255, 255, 0.2)',
+                      borderRadius: '12px',
+                      backgroundColor: 'rgba(255, 255, 255, 0.02)',
+                      color: 'rgba(255, 255, 255, 0.7)',
+                      fontSize: '13px',
+                      fontWeight: '500',
+                      cursor: 'pointer',
+                      display: 'flex',
+                      flexDirection: 'column',
+                      alignItems: 'center',
+                      gap: '6px',
+                      transition: 'all 0.2s ease'
                     }}
-                    title="Remove CV"
                   >
-                    <Trash2 size={16} />
+                    <UploadCloud size={22} style={{ color: '#F59E0B' }} />
+                    <span>Upload Resume (PDF)</span>
                   </button>
+                )}
+              </div>
+
+              {/* 2. PROFILE PIC (PASSPORT SIZE WITH WHITE/RED BACKGROUND) */}
+              <div style={{
+                backgroundColor: 'rgba(255, 255, 255, 0.02)',
+                border: '1px solid rgba(255, 255, 255, 0.1)',
+                borderRadius: '16px',
+                padding: '20px',
+                display: 'flex',
+                flexDirection: 'column',
+                gap: '12px'
+              }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+                  <div>
+                    <label style={{ fontSize: '14px', fontWeight: '600', color: '#FFFFFF', display: 'block' }}>
+                      Passport Size Profile Pic
+                    </label>
+                    <span style={{ fontSize: '11.5px', color: '#34BB88', fontWeight: '500' }}>
+                      White & Red background
+                    </span>
+                  </div>
+                  <span style={{ fontSize: '10.5px', background: 'rgba(239, 68, 68, 0.15)', color: '#EF4444', padding: '2px 8px', borderRadius: '6px', fontWeight: '600' }}>
+                    Passport Photo
+                  </span>
                 </div>
-              )}
+
+                <input
+                  type="file"
+                  ref={profilePicRef}
+                  onChange={(e) => e.target.files?.[0] && setProfilePicFile(e.target.files[0])}
+                  accept="image/*"
+                  style={{ display: 'none' }}
+                />
+
+                {profilePicFile ? (
+                  <div style={{
+                    backgroundColor: 'rgba(52, 187, 136, 0.1)',
+                    border: '1px solid rgba(52, 187, 136, 0.3)',
+                    borderRadius: '12px',
+                    padding: '12px',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'space-between'
+                  }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '10px', overflow: 'hidden' }}>
+                      <img
+                        src={URL.createObjectURL(profilePicFile)}
+                        alt="Preview"
+                        style={{ width: '40px', height: '40px', borderRadius: '8px', objectFit: 'cover', border: '1px solid rgba(255,255,255,0.2)' }}
+                      />
+                      <div style={{ overflow: 'hidden' }}>
+                        <p style={{ margin: 0, fontSize: '13px', fontWeight: '600', color: '#FFFFFF', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                          {profilePicFile.name}
+                        </p>
+                        <span style={{ fontSize: '11px', color: '#34BB88' }}>✓ Photo Attached</span>
+                      </div>
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() => setProfilePicFile(null)}
+                      style={{ background: 'none', border: 'none', color: '#EF4444', cursor: 'pointer', padding: '4px' }}
+                    >
+                      <Trash2 size={16} />
+                    </button>
+                  </div>
+                ) : (
+                  <button
+                    type="button"
+                    onClick={() => profilePicRef.current?.click()}
+                    style={{
+                      padding: '18px',
+                      border: '1.5px dashed rgba(255, 255, 255, 0.2)',
+                      borderRadius: '12px',
+                      backgroundColor: 'rgba(255, 255, 255, 0.02)',
+                      color: 'rgba(255, 255, 255, 0.7)',
+                      fontSize: '13px',
+                      fontWeight: '500',
+                      cursor: 'pointer',
+                      display: 'flex',
+                      flexDirection: 'column',
+                      alignItems: 'center',
+                      gap: '6px'
+                    }}
+                  >
+                    <UploadCloud size={22} style={{ color: '#34BB88' }} />
+                    <span>Upload Profile Photo</span>
+                  </button>
+                )}
+              </div>
+
+              {/* 2. AADHAAR CARD FRONT */}
+              <div style={{
+                backgroundColor: 'rgba(255, 255, 255, 0.02)',
+                border: '1px solid rgba(255, 255, 255, 0.1)',
+                borderRadius: '16px',
+                padding: '20px',
+                display: 'flex',
+                flexDirection: 'column',
+                gap: '12px'
+              }}>
+                <div>
+                  <label style={{ fontSize: '14px', fontWeight: '600', color: '#FFFFFF', display: 'block' }}>
+                    Aadhaar Card (Front)
+                  </label>
+                  <span style={{ fontSize: '11.5px', color: 'rgba(255,255,255,0.5)' }}>Front side copy (JPG, PNG)</span>
+                </div>
+
+                <input
+                  type="file"
+                  ref={aadhaarFrontRef}
+                  onChange={(e) => e.target.files?.[0] && setAadhaarFrontFile(e.target.files[0])}
+                  accept="image/jpeg,image/png,image/jpg,image/webp,image/*"
+                  style={{ display: 'none' }}
+                />
+
+                {aadhaarFrontFile ? (
+                  <div style={{
+                    backgroundColor: 'rgba(52, 187, 136, 0.1)',
+                    border: '1px solid rgba(52, 187, 136, 0.3)',
+                    borderRadius: '12px',
+                    padding: '12px',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'space-between'
+                  }}>
+                    <div style={{ overflow: 'hidden' }}>
+                      <p style={{ margin: 0, fontSize: '13px', fontWeight: '600', color: '#FFFFFF', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                        {aadhaarFrontFile.name}
+                      </p>
+                      <span style={{ fontSize: '11px', color: '#34BB88' }}>✓ Front Attached</span>
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() => setAadhaarFrontFile(null)}
+                      style={{ background: 'none', border: 'none', color: '#EF4444', cursor: 'pointer', padding: '4px' }}
+                    >
+                      <Trash2 size={16} />
+                    </button>
+                  </div>
+                ) : (
+                  <button
+                    type="button"
+                    onClick={() => aadhaarFrontRef.current?.click()}
+                    style={{
+                      padding: '18px',
+                      border: '1.5px dashed rgba(255, 255, 255, 0.2)',
+                      borderRadius: '12px',
+                      backgroundColor: 'rgba(255, 255, 255, 0.02)',
+                      color: 'rgba(255, 255, 255, 0.7)',
+                      fontSize: '13px',
+                      fontWeight: '500',
+                      cursor: 'pointer',
+                      display: 'flex',
+                      flexDirection: 'column',
+                      alignItems: 'center',
+                      gap: '6px'
+                    }}
+                  >
+                    <UploadCloud size={22} style={{ color: '#3B82F6' }} />
+                    <span>Upload Aadhaar Front</span>
+                  </button>
+                )}
+              </div>
+
+              {/* 3. AADHAAR CARD BACK */}
+              <div style={{
+                backgroundColor: 'rgba(255, 255, 255, 0.02)',
+                border: '1px solid rgba(255, 255, 255, 0.1)',
+                borderRadius: '16px',
+                padding: '20px',
+                display: 'flex',
+                flexDirection: 'column',
+                gap: '12px'
+              }}>
+                <div>
+                  <label style={{ fontSize: '14px', fontWeight: '600', color: '#FFFFFF', display: 'block' }}>
+                    Aadhaar Card (Back)
+                  </label>
+                  <span style={{ fontSize: '11.5px', color: 'rgba(255,255,255,0.5)' }}>Back side with address (JPG, PNG)</span>
+                </div>
+
+                <input
+                  type="file"
+                  ref={aadhaarBackRef}
+                  onChange={(e) => e.target.files?.[0] && setAadhaarBackFile(e.target.files[0])}
+                  accept="image/jpeg,image/png,image/jpg,image/webp,image/*"
+                  style={{ display: 'none' }}
+                />
+
+                {aadhaarBackFile ? (
+                  <div style={{
+                    backgroundColor: 'rgba(52, 187, 136, 0.1)',
+                    border: '1px solid rgba(52, 187, 136, 0.3)',
+                    borderRadius: '12px',
+                    padding: '12px',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'space-between'
+                  }}>
+                    <div style={{ overflow: 'hidden' }}>
+                      <p style={{ margin: 0, fontSize: '13px', fontWeight: '600', color: '#FFFFFF', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                        {aadhaarBackFile.name}
+                      </p>
+                      <span style={{ fontSize: '11px', color: '#34BB88' }}>✓ Back Attached</span>
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() => setAadhaarBackFile(null)}
+                      style={{ background: 'none', border: 'none', color: '#EF4444', cursor: 'pointer', padding: '4px' }}
+                    >
+                      <Trash2 size={16} />
+                    </button>
+                  </div>
+                ) : (
+                  <button
+                    type="button"
+                    onClick={() => aadhaarBackRef.current?.click()}
+                    style={{
+                      padding: '18px',
+                      border: '1.5px dashed rgba(255, 255, 255, 0.2)',
+                      borderRadius: '12px',
+                      backgroundColor: 'rgba(255, 255, 255, 0.02)',
+                      color: 'rgba(255, 255, 255, 0.7)',
+                      fontSize: '13px',
+                      fontWeight: '500',
+                      cursor: 'pointer',
+                      display: 'flex',
+                      flexDirection: 'column',
+                      alignItems: 'center',
+                      gap: '6px'
+                    }}
+                  >
+                    <UploadCloud size={22} style={{ color: '#3B82F6' }} />
+                    <span>Upload Aadhaar Back</span>
+                  </button>
+                )}
+              </div>
+
+              {/* 4. PAN CARD */}
+              <div style={{
+                backgroundColor: 'rgba(255, 255, 255, 0.02)',
+                border: '1px solid rgba(255, 255, 255, 0.1)',
+                borderRadius: '16px',
+                padding: '20px',
+                display: 'flex',
+                flexDirection: 'column',
+                gap: '12px'
+              }}>
+                <div>
+                  <label style={{ fontSize: '14px', fontWeight: '600', color: '#FFFFFF', display: 'block' }}>
+                    PAN Card (Front)
+                  </label>
+                  <span style={{ fontSize: '11.5px', color: 'rgba(255,255,255,0.5)' }}>Clear copy of PAN Card Front (JPG, PNG)</span>
+                </div>
+
+                <input
+                  type="file"
+                  ref={panCardRef}
+                  onChange={(e) => e.target.files?.[0] && setPanCardFile(e.target.files[0])}
+                  accept="image/jpeg,image/png,image/jpg,image/webp,image/*"
+                  style={{ display: 'none' }}
+                />
+
+                {panCardFile ? (
+                  <div style={{
+                    backgroundColor: 'rgba(52, 187, 136, 0.1)',
+                    border: '1px solid rgba(52, 187, 136, 0.3)',
+                    borderRadius: '12px',
+                    padding: '12px',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'space-between'
+                  }}>
+                    <div style={{ overflow: 'hidden' }}>
+                      <p style={{ margin: 0, fontSize: '13px', fontWeight: '600', color: '#FFFFFF', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                        {panCardFile.name}
+                      </p>
+                      <span style={{ fontSize: '11px', color: '#34BB88' }}>✓ PAN Front Attached</span>
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() => setPanCardFile(null)}
+                      style={{ background: 'none', border: 'none', color: '#EF4444', cursor: 'pointer', padding: '4px' }}
+                    >
+                      <Trash2 size={16} />
+                    </button>
+                  </div>
+                ) : (
+                  <button
+                    type="button"
+                    onClick={() => panCardRef.current?.click()}
+                    style={{
+                      padding: '18px',
+                      border: '1.5px dashed rgba(255, 255, 255, 0.2)',
+                      borderRadius: '12px',
+                      backgroundColor: 'rgba(255, 255, 255, 0.02)',
+                      color: 'rgba(255, 255, 255, 0.7)',
+                      fontSize: '13px',
+                      fontWeight: '500',
+                      cursor: 'pointer',
+                      display: 'flex',
+                      flexDirection: 'column',
+                      alignItems: 'center',
+                      gap: '6px'
+                    }}
+                  >
+                    <UploadCloud size={22} style={{ color: '#F59E0B' }} />
+                    <span>Upload PAN Card (Front)</span>
+                  </button>
+                )}
+              </div>
+
+              {/* 6. ADDRESS PROOF (ELECTRICITY / LANDLINE / STD BILL) */}
+              <div style={{
+                backgroundColor: 'rgba(255, 255, 255, 0.02)',
+                border: '1px solid rgba(255, 255, 255, 0.1)',
+                borderRadius: '16px',
+                padding: '20px',
+                display: 'flex',
+                flexDirection: 'column',
+                gap: '12px'
+              }}>
+                <div>
+                  <label style={{ fontSize: '14px', fontWeight: '600', color: '#FFFFFF', display: 'block' }}>
+                    Address Proof Document
+                  </label>
+                  <span style={{ fontSize: '11.5px', color: 'rgba(255,255,255,0.5)' }}>
+                    Electricity Bill / Landline Bill / STD Bill (PDF, JPG, PNG)
+                  </span>
+                </div>
+
+                <input
+                  type="file"
+                  ref={addressProofRef}
+                  onChange={(e) => e.target.files?.[0] && setAddressProofFile(e.target.files[0])}
+                  accept=".pdf,application/pdf,image/jpeg,image/png,image/jpg,image/webp,image/*"
+                  style={{ display: 'none' }}
+                />
+
+                {addressProofFile ? (
+                  <div style={{
+                    backgroundColor: 'rgba(52, 187, 136, 0.1)',
+                    border: '1px solid rgba(52, 187, 136, 0.3)',
+                    borderRadius: '12px',
+                    padding: '12px',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'space-between'
+                  }}>
+                    <div style={{ overflow: 'hidden' }}>
+                      <p style={{ margin: 0, fontSize: '13px', fontWeight: '600', color: '#FFFFFF', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                        {addressProofFile.name}
+                      </p>
+                      <span style={{ fontSize: '11px', color: '#34BB88' }}>✓ Address Proof Attached</span>
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() => setAddressProofFile(null)}
+                      style={{ background: 'none', border: 'none', color: '#EF4444', cursor: 'pointer', padding: '4px' }}
+                    >
+                      <Trash2 size={16} />
+                    </button>
+                  </div>
+                ) : (
+                  <button
+                    type="button"
+                    onClick={() => addressProofRef.current?.click()}
+                    style={{
+                      padding: '18px',
+                      border: '1.5px dashed rgba(255, 255, 255, 0.2)',
+                      borderRadius: '12px',
+                      backgroundColor: 'rgba(255, 255, 255, 0.02)',
+                      color: 'rgba(255, 255, 255, 0.7)',
+                      fontSize: '13px',
+                      fontWeight: '500',
+                      cursor: 'pointer',
+                      display: 'flex',
+                      flexDirection: 'column',
+                      alignItems: 'center',
+                      gap: '6px'
+                    }}
+                  >
+                    <UploadCloud size={22} style={{ color: '#A855F7' }} />
+                    <span>Upload Address Proof</span>
+                  </button>
+                )}
+              </div>
+
             </div>
           </div>
 

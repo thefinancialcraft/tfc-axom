@@ -17,7 +17,10 @@ import {
   Loader2,
   ShieldAlert,
   LogIn,
-  Calendar
+  Calendar,
+  CreditCard,
+  MapPin,
+  FileCheck
 } from 'lucide-react';
 
 interface CandidateProfile {
@@ -43,6 +46,12 @@ interface CandidateProfile {
   cv_file_name?: string;
   cv_url?: string;
   cv_file_url?: string;
+  profile_pic_url?: string;
+  aadhaar_front_url?: string;
+  aadhaar_back_url?: string;
+  pan_card_url?: string;
+  address_proof_url?: string;
+  address_proof_type?: string;
   details_submitted?: boolean;
   created_at?: string;
   shareable_link?: string;
@@ -71,6 +80,190 @@ export default function StrictCandidatePdfPage() {
   const [loading, setLoading] = useState(true);
   const [candidate, setCandidate] = useState<CandidateProfile | null>(null);
   const [preloadedCvUrl, setPreloadedCvUrl] = useState<string | null>(null);
+  const [pdfPageCount, setPdfPageCount] = useState<number>(1);
+  const [preloadedAddressProofUrl, setPreloadedAddressProofUrl] = useState<string | null>(null);
+  const [addressProofPdfPageCount, setAddressProofPdfPageCount] = useState<number>(1);
+
+  // Load PDF.js dynamically for 100% automated exact PDF page counting
+  useEffect(() => {
+    if (typeof window !== 'undefined' && !(window as any).pdfjsLib) {
+      const script = document.createElement('script');
+      script.src = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js';
+      script.async = true;
+      script.onload = () => {
+        if ((window as any).pdfjsLib) {
+          (window as any).pdfjsLib.GlobalWorkerOptions.workerSrc =
+            'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+        }
+      };
+      document.body.appendChild(script);
+    }
+  }, []);
+
+  // Automatic PDF.js page count scanner effect for Address Proof PDF
+  useEffect(() => {
+    const rawAddr = candidate?.address_proof_url || (candidate as any)?.addressProofUrl || (candidate as any)?.address_proof;
+    const docUrl = preloadedAddressProofUrl || getPublicStorageUrl(rawAddr);
+    if (!docUrl || docUrl.match(/\.(jpg|jpeg|png|webp)(\?.*)?$/i)) return;
+
+    let isCancelled = false;
+    const scanPdfJs = async () => {
+      try {
+        if (typeof window !== 'undefined' && (window as any).pdfjsLib) {
+          (window as any).pdfjsLib.GlobalWorkerOptions.workerSrc =
+            'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+          const pdf = await (window as any).pdfjsLib.getDocument(docUrl).promise;
+          if (pdf && pdf.numPages > 0 && !isCancelled) {
+            setAddressProofPdfPageCount((prev) => Math.max(prev, pdf.numPages));
+          }
+        }
+      } catch (e) {
+        console.warn('PDF.js auto-scan Address Proof warning:', e);
+      }
+    };
+
+    scanPdfJs();
+    const t1 = setTimeout(scanPdfJs, 800);
+    const t2 = setTimeout(scanPdfJs, 2000);
+
+    return () => {
+      isCancelled = true;
+      clearTimeout(t1);
+      clearTimeout(t2);
+    };
+  }, [preloadedAddressProofUrl, candidate]);
+
+  // Automatic PDF.js page count scanner effect for CV PDF
+  useEffect(() => {
+    const rawCv = candidate?.cv_url || candidate?.cv_file_url || candidate?.cv_file_name || (candidate as any)?.cvUrl;
+    const docUrl = preloadedCvUrl || getPublicStorageUrl(rawCv);
+    if (!docUrl || docUrl.match(/\.(jpg|jpeg|png|webp)(\?.*)?$/i)) return;
+
+    let isCancelled = false;
+    const scanCvPdfJs = async () => {
+      try {
+        if (typeof window !== 'undefined' && (window as any).pdfjsLib) {
+          (window as any).pdfjsLib.GlobalWorkerOptions.workerSrc =
+            'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+          const pdf = await (window as any).pdfjsLib.getDocument(docUrl).promise;
+          if (pdf && pdf.numPages > 0 && !isCancelled) {
+            setPdfPageCount((prev) => Math.max(prev, pdf.numPages));
+          }
+        }
+      } catch (e) {
+        console.warn('PDF.js auto-scan CV warning:', e);
+      }
+    };
+
+    scanCvPdfJs();
+    const t1 = setTimeout(scanCvPdfJs, 800);
+    const t2 = setTimeout(scanCvPdfJs, 2000);
+
+    return () => {
+      isCancelled = true;
+      clearTimeout(t1);
+      clearTimeout(t2);
+    };
+  }, [preloadedCvUrl, candidate]);
+
+  // Storage Public URL Resolver
+  const getPublicStorageUrl = (pathOrUrl?: string | null) => {
+    if (!pathOrUrl) return null;
+    if (pathOrUrl.startsWith('http://') || pathOrUrl.startsWith('https://') || pathOrUrl.startsWith('blob:')) {
+      return pathOrUrl;
+    }
+    const { data } = supabase.storage.from('resumes').getPublicUrl(pathOrUrl);
+    return data?.publicUrl || pathOrUrl;
+  };
+
+  // Helper function to safely fetch PDF ArrayBuffer via Supabase SDK download (bypass CORS) or fetch fallback
+  const fetchPdfArrayBuffer = async (pathOrUrl: string): Promise<ArrayBuffer | null> => {
+    try {
+      if (!pathOrUrl) return null;
+
+      // Extract filename if it's a Supabase public URL or path
+      const cleanFileName = pathOrUrl.includes('/resumes/') 
+        ? pathOrUrl.split('/resumes/').pop()?.split('?')[0]
+        : pathOrUrl;
+
+      if (cleanFileName && !cleanFileName.startsWith('http://') && !cleanFileName.startsWith('https://') && !cleanFileName.startsWith('blob:')) {
+        const { data: blobData, error } = await supabase.storage
+          .from('resumes')
+          .download(cleanFileName);
+
+        if (!error && blobData) {
+          return await blobData.arrayBuffer();
+        }
+      }
+
+      // Fallback: Fetch via server proxy route (bypasses browser CORS completely)
+      const targetUrl = getPublicStorageUrl(pathOrUrl);
+      if (targetUrl) {
+        try {
+          const proxyRes = await fetch(`/api/pdf-proxy?url=${encodeURIComponent(targetUrl)}`);
+          if (proxyRes.ok) {
+            return await proxyRes.arrayBuffer();
+          }
+        } catch (e) {
+          const res = await fetch(targetUrl);
+          if (res.ok) {
+            return await res.arrayBuffer();
+          }
+        }
+      }
+    } catch (err) {
+      console.warn('fetchPdfArrayBuffer warning:', err);
+    }
+    return null;
+  };
+
+  // Helper function to extract exact page count from any PDF ArrayBuffer (including compressed stream PDFs like Electricity Bills)
+  const extractPdfPageCount = (arrayBuffer: ArrayBuffer): number => {
+    try {
+      const textDecoder = new TextDecoder('latin1');
+      const text = textDecoder.decode(arrayBuffer);
+
+      let maxPages = 1;
+
+      // Method 1: Check /Type /Pages root object /Count N
+      const pagesCountMatches = text.match(/\/Type\s*\/Pages\b[\s\S]{1,300}?\/Count\s+(\d+)/i) || text.match(/\/Count\s+(\d+)[\s\S]{1,300}?\/Type\s*\/Pages\b/i);
+      if (pagesCountMatches && pagesCountMatches[1]) {
+        const parsed = parseInt(pagesCountMatches[1], 10);
+        if (!isNaN(parsed) && parsed > 0 && parsed < 500) {
+          maxPages = parsed;
+        }
+      }
+
+      // Method 2: Fallback /Count N matches
+      if (maxPages === 1) {
+        const countMatches = text.match(/\/Count\s+(\d+)/gi);
+        if (countMatches) {
+          for (const m of countMatches) {
+            const numMatch = m.match(/\d+/);
+            if (numMatch) {
+              const val = parseInt(numMatch[0], 10);
+              if (!isNaN(val) && val > maxPages && val < 500) {
+                maxPages = val;
+              }
+            }
+          }
+        }
+      }
+
+      // Method 3: Check exact /Type /Page declarations
+      const pageMatches = text.match(/\/Type\s*\/Page\b/gi) || text.match(/\/Type\/Page\b/gi);
+      if (pageMatches && pageMatches.length > 0) {
+        if (maxPages === 1 || pageMatches.length < maxPages) {
+          maxPages = pageMatches.length;
+        }
+      }
+
+      return Math.max(1, maxPages);
+    } catch (err) {
+      console.warn('PDF page count extraction warning:', err);
+      return 1;
+    }
+  };
 
   useEffect(() => {
     async function fetchCandidateData() {
@@ -116,29 +309,73 @@ export default function StrictCandidatePdfPage() {
           }
         }
 
-        if (matchedCandidate) {
-          setCandidate(matchedCandidate);
-          // PRE-FETCH ENTIRE PDF BINARY INTO RAM BLOB URL FOR INSTANT ZERO-DELAY RENDERING
-          const cv = matchedCandidate.cv_url || matchedCandidate.cv_file_url || matchedCandidate.cv_file_name;
+        const preloadDocumentPdfs = async (c: CandidateProfile) => {
+          // 1. CV PDF
+          const cv = c.cv_url || c.cv_file_url || c.cv_file_name || (c as any).cvUrl;
           if (cv) {
-            let targetUrl = cv;
-            if (!cv.startsWith('http://') && !cv.startsWith('https://') && !cv.startsWith('blob:')) {
-              const { data: pData } = supabase.storage.from('resumes').getPublicUrl(cv);
-              if (pData?.publicUrl) targetUrl = pData.publicUrl;
-            }
-            if (targetUrl && (targetUrl.startsWith('http') || targetUrl.includes('.pdf'))) {
+            const targetUrl = getPublicStorageUrl(cv);
+            if (targetUrl) {
               try {
-                const res = await fetch(targetUrl);
-                if (res.ok) {
-                  const blob = await res.blob();
-                  const objectUrl = URL.createObjectURL(blob);
-                  setPreloadedCvUrl(objectUrl);
+                const infoRes = await fetch(`/api/pdf-info?url=${encodeURIComponent(targetUrl)}`);
+                if (infoRes.ok) {
+                  const info = await infoRes.json();
+                  if (info.pageCount && info.pageCount > 0) {
+                    setPdfPageCount((prev) => Math.max(prev, info.pageCount));
+                  }
                 }
               } catch (e) {
-                console.error('PDF instant pre-loader fetch error:', e);
+                console.warn('Error fetching CV pdf-info:', e);
               }
             }
+
+            const arrayBuffer = await fetchPdfArrayBuffer(cv);
+            if (arrayBuffer) {
+              const pages = extractPdfPageCount(arrayBuffer);
+              if (pages > 0) {
+                setPdfPageCount((prev) => Math.max(prev, pages));
+              }
+
+              const blob = new Blob([arrayBuffer], { type: 'application/pdf' });
+              const objectUrl = URL.createObjectURL(blob);
+              setPreloadedCvUrl(objectUrl);
+            }
           }
+
+          // 2. Address Proof PDF (Electricity / Landline / STD Bill)
+          const addrDoc = c.address_proof_url || (c as any).addressProofUrl || (c as any).address_proof;
+          if (addrDoc) {
+            const targetUrl = getPublicStorageUrl(addrDoc);
+            if (targetUrl) {
+              try {
+                const infoRes = await fetch(`/api/pdf-info?url=${encodeURIComponent(targetUrl)}`);
+                if (infoRes.ok) {
+                  const info = await infoRes.json();
+                  if (info.pageCount && info.pageCount > 0) {
+                    setAddressProofPdfPageCount((prev) => Math.max(prev, info.pageCount));
+                  }
+                }
+              } catch (e) {
+                console.warn('Error fetching Address Proof pdf-info:', e);
+              }
+            }
+
+            const arrayBuffer = await fetchPdfArrayBuffer(addrDoc);
+            if (arrayBuffer) {
+              const pages = extractPdfPageCount(arrayBuffer);
+              if (pages > 0) {
+                setAddressProofPdfPageCount((prev) => Math.max(prev, pages));
+              }
+
+              const blob = new Blob([arrayBuffer], { type: 'application/pdf' });
+              const objectUrl = URL.createObjectURL(blob);
+              setPreloadedAddressProofUrl(objectUrl);
+            }
+          }
+        };
+
+        if (matchedCandidate) {
+          setCandidate(matchedCandidate);
+          preloadDocumentPdfs(matchedCandidate);
         } else {
           // LocalStorage fallback for offline testing
           if (typeof window !== 'undefined') {
@@ -150,7 +387,7 @@ export default function StrictCandidatePdfPage() {
                 (c.id === refValue || c.candidate_id === refValue)
               );
               if (found) {
-                setCandidate({
+                const loadedCandidate = {
                   id: found.id || uuidValue,
                   candidate_id: found.candidate_id || found.id || refValue,
                   name: found.name || 'Candidate',
@@ -169,9 +406,17 @@ export default function StrictCandidatePdfPage() {
                   father_name: found.father_name || found.fatherName || '',
                   interview_time: found.interview_time || found.interview_availability || 'Immediate (Tomorrow at 11:00 AM)',
                   cv_url: found.cv_url || found.cvUrl || found.cvFileName || '',
+                  profile_pic_url: found.profile_pic_url || found.profilePicUrl || '',
+                  aadhaar_front_url: found.aadhaar_front_url || found.aadhaarFrontUrl || '',
+                  aadhaar_back_url: found.aadhaar_back_url || found.aadhaarBackUrl || '',
+                  pan_card_url: found.pan_card_url || found.panCardUrl || '',
+                  address_proof_url: found.address_proof_url || found.addressProofUrl || '',
+                  address_proof_type: found.address_proof_type || found.addressProofType || 'Electricity Bill / Landline Bill / STD Bill',
                   stage: found.stage || 'Lead',
                   details_submitted: true
-                });
+                };
+                setCandidate(loadedCandidate);
+                preloadDocumentPdfs(loadedCandidate);
               }
             }
           }
@@ -290,17 +535,44 @@ export default function StrictCandidatePdfPage() {
     'Candidate Record';
 
   const rawCv = candidate?.cv_url || candidate?.cv_file_url || candidate?.cv_file_name;
-  let resolvedCvUrl = '';
-  if (rawCv) {
-    if (rawCv.startsWith('http://') || rawCv.startsWith('https://') || rawCv.startsWith('blob:')) {
-      resolvedCvUrl = rawCv;
-    } else {
-      const { data: pData } = supabase.storage.from('resumes').getPublicUrl(rawCv);
-      resolvedCvUrl = pData?.publicUrl || rawCv;
-    }
-  }
+  const resolvedCvUrl = getPublicStorageUrl(rawCv) || '';
   const cvLink = preloadedCvUrl || resolvedCvUrl;
   const isCvPdfUrl = !!cvLink && (cvLink.startsWith('http') || cvLink.startsWith('blob:') || cvLink.includes('.pdf'));
+
+  // Document URLs
+  const profilePicUrl = getPublicStorageUrl(candidate?.profile_pic_url);
+  const aadhaarFrontUrl = getPublicStorageUrl(candidate?.aadhaar_front_url);
+  const aadhaarBackUrl = getPublicStorageUrl(candidate?.aadhaar_back_url);
+  const panCardUrl = getPublicStorageUrl(candidate?.pan_card_url);
+  
+  const rawAddressProof = candidate?.address_proof_url;
+  const resolvedAddressProofUrl = getPublicStorageUrl(rawAddressProof) || '';
+  const addressProofLink = preloadedAddressProofUrl || resolvedAddressProofUrl;
+  const addressProofUrl = addressProofLink;
+  const addressProofType = candidate?.address_proof_type || 'Electricity Bill / Landline Bill / STD Bill';
+
+  // Dynamic Pagination Calculation
+  const hasIdDocs = Boolean(aadhaarFrontUrl || aadhaarBackUrl || panCardUrl);
+  const hasAddressProof = Boolean(addressProofLink);
+  const hasCv = Boolean(cvLink);
+
+  let totalPages = 1; // Page 1 is Evaluation Sheet
+  let idDocsPageIndex = 0;
+  let addressProofPageIndex = 0;
+  let cvStartPageIndex = 0;
+
+  if (hasIdDocs) {
+    totalPages += 1;
+    idDocsPageIndex = totalPages;
+  }
+  if (hasAddressProof) {
+    addressProofPageIndex = totalPages + 1;
+    totalPages += addressProofPdfPageCount;
+  }
+  if (hasCv) {
+    cvStartPageIndex = totalPages + 1;
+    totalPages += pdfPageCount;
+  }
 
   return (
     <div className="print-wrapper" style={{
@@ -340,10 +612,10 @@ export default function StrictCandidatePdfPage() {
           </div>
           <div>
             <h1 style={{ fontSize: '15px', fontWeight: '700', color: '#FFF', margin: 0 }}>
-              Candidate Profile PDF Dossier
+              Candidate Evaluation & Verification PDF Dossier
             </h1>
             <span style={{ fontSize: '11px', color: 'rgba(255, 255, 255, 0.5)', fontFamily: 'monospace' }}>
-              profile={uuidValue}&ref={refValue}
+              profile={uuidValue}&ref={refValue} • {totalPages} Pages
             </span>
           </div>
         </div>
@@ -482,7 +754,7 @@ export default function StrictCandidatePdfPage() {
                   </div>
                 </div>
 
-                {/* CANDIDATE HERO INFORMATION */}
+                {/* CANDIDATE HERO INFORMATION WITH PASSPORT SIZE PHOTO */}
                 <div style={{
                   backgroundColor: '#F8FAFC',
                   border: '1px solid #E2E8F0',
@@ -493,25 +765,54 @@ export default function StrictCandidatePdfPage() {
                   justifyContent: 'space-between',
                   alignItems: 'center'
                 }}>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
-                    <div style={{
-                      width: '60px',
-                      height: '60px',
-                      borderRadius: '50%',
-                      backgroundColor: '#0F172A',
-                      color: '#34BB88',
-                      display: 'flex',
-                      alignItems: 'center',
-                      justifyContent: 'center',
-                      fontSize: '24px',
-                      fontWeight: '800',
-                      border: '3px solid #34BB88',
-                      boxShadow: '0 4px 12px rgba(52, 187, 136, 0.15)'
-                    }}>
-                      {fullName.charAt(0).toUpperCase()}
-                    </div>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '20px' }}>
+                    {/* PASSPORT PHOTO BOX */}
+                    {profilePicUrl ? (
+                      <div style={{
+                        width: '85px',
+                        height: '105px',
+                        borderRadius: '10px',
+                        overflow: 'hidden',
+                        border: '2.5px solid #0F172A',
+                        boxShadow: '0 4px 12px rgba(0, 0, 0, 0.12)',
+                        backgroundColor: '#F1F5F9',
+                        flexShrink: 0,
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center'
+                      }}>
+                        <img
+                          src={profilePicUrl}
+                          alt={fullName}
+                          style={{
+                            width: '100%',
+                            height: '100%',
+                            objectFit: 'cover'
+                          }}
+                        />
+                      </div>
+                    ) : (
+                      <div style={{
+                        width: '85px',
+                        height: '105px',
+                        borderRadius: '10px',
+                        backgroundColor: '#F1F5F9',
+                        border: '2px dashed #CBD5E1',
+                        color: '#64748B',
+                        display: 'flex',
+                        flexDirection: 'column',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        flexShrink: 0,
+                        gap: '4px'
+                      }}>
+                        <User size={30} style={{ color: '#0F172A' }} />
+                        <span style={{ fontSize: '8.5px', fontWeight: '800', textTransform: 'uppercase', color: '#64748B', letterSpacing: '0.5px' }}>Passport Photo</span>
+                      </div>
+                    )}
+
                     <div>
-                      <h2 style={{ fontSize: '21px', fontWeight: '800', margin: '0 0 4px 0', color: '#0F172A', letterSpacing: '-0.5px' }}>
+                      <h2 style={{ fontSize: '21px', fontWeight: '800', margin: '0 0 6px 0', color: '#0F172A', letterSpacing: '-0.5px' }}>
                         {fullName}
                       </h2>
                       <div style={{ display: 'flex', gap: '8px', alignItems: 'center', flexWrap: 'wrap' }}>
@@ -699,7 +1000,7 @@ export default function StrictCandidatePdfPage() {
                     </div>
                   </div>
 
-                  {/* CATEGORY 04: RESUME / CV ATTACHMENT */}
+                  {/* CATEGORY 04: ATTACHED DOCUMENTS & VERIFICATION */}
                   <div style={{
                     border: '1px solid #E2E8F0',
                     borderRadius: '12px',
@@ -719,24 +1020,40 @@ export default function StrictCandidatePdfPage() {
                       alignItems: 'center',
                       gap: '6px'
                     }}>
-                      <CheckCircle2 size={15} style={{ color: '#D97706' }} />
-                      <span>04. Resume / CV Attachment</span>
+                      <FileCheck size={15} style={{ color: '#D97706' }} />
+                      <span>04. Verification Attachments</span>
                     </h3>
 
-                    <div style={{ display: 'flex', flexDirection: 'column', gap: '9px' }}>
-                      <div>
-                        <span style={{ fontSize: '10px', color: '#64748B', display: 'block', fontWeight: '600', textTransform: 'uppercase' }}>CV Upload Status</span>
-                        <strong style={{ color: cvLink ? '#059669' : '#DC2626', fontSize: '12px', fontWeight: '700' }}>
-                          {cvLink ? '✓ PDF Resume Attached' : '✕ No CV Document Uploaded'}
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '7px' }}>
+                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                        <span style={{ fontSize: '10.5px', color: '#475569', fontWeight: '500' }}>Passport Photo:</span>
+                        <strong style={{ color: profilePicUrl ? '#059669' : '#94A3B8', fontSize: '11px', fontWeight: '700' }}>
+                          {profilePicUrl ? '✓ Attached' : '— Not Provided'}
                         </strong>
                       </div>
-                      <div>
-                        <span style={{ fontSize: '10px', color: '#64748B', display: 'block', fontWeight: '600', textTransform: 'uppercase' }}>Document Type & Format</span>
-                        <strong style={{ color: '#334155', fontSize: '12px' }}>{cvLink ? 'PDF Document (Page 2 Attached)' : 'N/A'}</strong>
+                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                        <span style={{ fontSize: '10.5px', color: '#475569', fontWeight: '500' }}>Aadhaar Front & Back:</span>
+                        <strong style={{ color: (aadhaarFrontUrl || aadhaarBackUrl) ? '#059669' : '#94A3B8', fontSize: '11px', fontWeight: '700' }}>
+                          {(aadhaarFrontUrl && aadhaarBackUrl) ? '✓ Front & Back' : (aadhaarFrontUrl || aadhaarBackUrl ? '✓ Partial' : '— Not Provided')}
+                        </strong>
                       </div>
-                      <div>
-                        <span style={{ fontSize: '10px', color: '#64748B', display: 'block', fontWeight: '600', textTransform: 'uppercase' }}>Verification Dossier Status</span>
-                        <strong style={{ color: '#059669', fontSize: '12px', fontWeight: '700' }}>Database Synchronized</strong>
+                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                        <span style={{ fontSize: '10.5px', color: '#475569', fontWeight: '500' }}>PAN Card (Front):</span>
+                        <strong style={{ color: panCardUrl ? '#059669' : '#94A3B8', fontSize: '11px', fontWeight: '700' }}>
+                          {panCardUrl ? '✓ Attached' : '— Not Provided'}
+                        </strong>
+                      </div>
+                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                        <span style={{ fontSize: '10.5px', color: '#475569', fontWeight: '500' }}>Address Proof (Bill):</span>
+                        <strong style={{ color: addressProofUrl ? '#059669' : '#94A3B8', fontSize: '11px', fontWeight: '700' }}>
+                          {addressProofUrl ? '✓ Bill Attached' : '— Not Provided'}
+                        </strong>
+                      </div>
+                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                        <span style={{ fontSize: '10.5px', color: '#475569', fontWeight: '500' }}>Resume / CV PDF:</span>
+                        <strong style={{ color: cvLink ? '#059669' : '#94A3B8', fontSize: '11px', fontWeight: '700' }}>
+                          {cvLink ? '✓ CV PDF Attached' : '— Not Provided'}
+                        </strong>
                       </div>
                     </div>
                   </div>
@@ -774,51 +1091,398 @@ export default function StrictCandidatePdfPage() {
                     <span style={{ fontWeight: '600' }}>TFC Axom HR Portal System Verified</span>
                   </div>
                   <div style={{ fontWeight: '600' }}>
-                    Page 1 of {isCvPdfUrl ? '2' : '1'} — Dossier ID: {candidate?.id || uuidValue}
+                    Page 1 of {totalPages} — Dossier ID: {candidate?.id || uuidValue}
                   </div>
                 </div>
               </div>
             </div>
 
-            {/* PAGE 2: ATTACHED RESUME CV FULL DOCUMENT (ZERO MARGIN / BORDER / PADDING) */}
-            {cvLink && isCvPdfUrl && (
+            {/* PAGE 2: SEPARATE DEDICATED PAGE FOR IDENTITY DOCUMENTS (AADHAAR FRONT/BACK & PAN CARD) */}
+            {hasIdDocs && (
               <div
-                className="pdf-page pdf-page-2"
+                className="pdf-page pdf-page-id-docs"
+                style={{
+                  backgroundColor: '#FFFFFF',
+                  color: '#0F172A',
+                  borderRadius: '16px',
+                  padding: '36px 44px',
+                  boxShadow: 'none',
+                  marginBottom: '32px',
+                  position: 'relative',
+                  overflow: 'hidden',
+                  height: '297mm',
+                  maxHeight: '297mm',
+                  boxSizing: 'border-box',
+                  display: 'flex',
+                  flexDirection: 'column',
+                  justifyContent: 'space-between',
+                  fontFamily: 'Inter, system-ui, sans-serif'
+                }}
+              >
+                <div>
+                  {/* HEADER */}
+                  <div style={{
+                    display: 'flex',
+                    justifyContent: 'space-between',
+                    alignItems: 'center',
+                    paddingBottom: '14px',
+                    borderBottom: '2px solid #0F172A',
+                    marginBottom: '20px'
+                  }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                      <div style={{
+                        width: '36px',
+                        height: '36px',
+                        borderRadius: '8px',
+                        backgroundColor: '#0F172A',
+                        color: '#34BB88',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        fontWeight: '800',
+                        fontSize: '14px'
+                      }}>
+                        <CreditCard size={20} />
+                      </div>
+                      <div>
+                        <h2 style={{ fontSize: '18px', fontWeight: '800', margin: 0, color: '#0F172A', letterSpacing: '-0.5px' }}>
+                          OFFICIAL IDENTITY VERIFICATION DOCUMENTS
+                        </h2>
+                        <span style={{ fontSize: '10px', color: '#059669', fontWeight: '700', textTransform: 'uppercase', letterSpacing: '1px' }}>
+                          Aadhaar Card (Front & Back) & PAN Card (Front)
+                        </span>
+                      </div>
+                    </div>
+
+                    <div style={{
+                      backgroundColor: '#F8FAFC',
+                      border: '1px solid #CBD5E1',
+                      padding: '4px 12px',
+                      borderRadius: '6px',
+                      textAlign: 'right'
+                    }}>
+                      <strong style={{ fontSize: '12px', color: '#0F172A', fontFamily: 'monospace', fontWeight: '800' }}>
+                        {candidate?.candidate_id || candidate?.ref_id || refValue}
+                      </strong>
+                    </div>
+                  </div>
+
+                  {/* 3 CARDS LAYOUT CONTAINER (UNIFORM AADHAAR / PAN CARD DIMENSIONS) */}
+                  <div style={{
+                    display: 'grid',
+                    gridTemplateColumns: '1fr 1fr',
+                    gap: '16px',
+                    alignItems: 'start'
+                  }}>
+                    
+                    {/* CARD 1: AADHAAR CARD FRONT */}
+                    <div style={{
+                      border: '1.5px solid #CBD5E1',
+                      borderRadius: '12px',
+                      padding: '12px',
+                      backgroundColor: '#F8FAFC',
+                      display: 'flex',
+                      flexDirection: 'column',
+                      gap: '8px'
+                    }}>
+                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                        <span style={{ fontSize: '12px', fontWeight: '800', color: '#0F172A' }}>Aadhaar Card (Front)</span>
+                        <span style={{ fontSize: '9.5px', background: '#DCFCE7', color: '#15803D', padding: '2px 8px', borderRadius: '4px', fontWeight: '700' }}>✓ Verified ID</span>
+                      </div>
+
+                      <div style={{
+                        width: '100%',
+                        height: '200px',
+                        backgroundColor: '#FFFFFF',
+                        border: '1px solid #E2E8F0',
+                        borderRadius: '8px',
+                        overflow: 'hidden',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center'
+                      }}>
+                        {aadhaarFrontUrl ? (
+                          aadhaarFrontUrl.match(/\.(pdf)(\?.*)?$/i) ? (
+                            <iframe src={`${aadhaarFrontUrl}#toolbar=0&navpanes=0`} style={{ width: '100%', height: '100%', border: 'none' }} title="Aadhaar Front" />
+                          ) : (
+                            <img src={aadhaarFrontUrl} alt="Aadhaar Front" style={{ width: '100%', height: '100%', objectFit: 'contain' }} />
+                          )
+                        ) : (
+                          <span style={{ fontSize: '11px', color: '#94A3B8', fontWeight: '600' }}>Not Attached</span>
+                        )}
+                      </div>
+                    </div>
+
+                    {/* CARD 2: AADHAAR CARD BACK */}
+                    <div style={{
+                      border: '1.5px solid #CBD5E1',
+                      borderRadius: '12px',
+                      padding: '12px',
+                      backgroundColor: '#F8FAFC',
+                      display: 'flex',
+                      flexDirection: 'column',
+                      gap: '8px'
+                    }}>
+                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                        <span style={{ fontSize: '12px', fontWeight: '800', color: '#0F172A' }}>Aadhaar Card (Back)</span>
+                        <span style={{ fontSize: '9.5px', background: '#DCFCE7', color: '#15803D', padding: '2px 8px', borderRadius: '4px', fontWeight: '700' }}>✓ Verified ID</span>
+                      </div>
+
+                      <div style={{
+                        width: '100%',
+                        height: '200px',
+                        backgroundColor: '#FFFFFF',
+                        border: '1px solid #E2E8F0',
+                        borderRadius: '8px',
+                        overflow: 'hidden',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center'
+                      }}>
+                        {aadhaarBackUrl ? (
+                          aadhaarBackUrl.match(/\.(pdf)(\?.*)?$/i) ? (
+                            <iframe src={`${aadhaarBackUrl}#toolbar=0&navpanes=0`} style={{ width: '100%', height: '100%', border: 'none' }} title="Aadhaar Back" />
+                          ) : (
+                            <img src={aadhaarBackUrl} alt="Aadhaar Back" style={{ width: '100%', height: '100%', objectFit: 'contain' }} />
+                          )
+                        ) : (
+                          <span style={{ fontSize: '11px', color: '#94A3B8', fontWeight: '600' }}>Not Attached</span>
+                        )}
+                      </div>
+                    </div>
+
+                    {/* CARD 3: PAN CARD (FRONT) - SPANS 2 COLUMNS FOR PERFECT BALANCE */}
+                    <div style={{
+                      gridColumn: 'span 2',
+                      border: '1.5px solid #CBD5E1',
+                      borderRadius: '12px',
+                      padding: '12px',
+                      backgroundColor: '#F8FAFC',
+                      display: 'flex',
+                      flexDirection: 'column',
+                      gap: '8px',
+                      maxWidth: '380px',
+                      margin: '0 auto',
+                      width: '100%'
+                    }}>
+                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                        <span style={{ fontSize: '12px', fontWeight: '800', color: '#0F172A' }}>PAN Card (Front)</span>
+                        <span style={{ fontSize: '9.5px', background: '#DCFCE7', color: '#15803D', padding: '2px 8px', borderRadius: '4px', fontWeight: '700' }}>✓ Verified PAN</span>
+                      </div>
+
+                      <div style={{
+                        width: '100%',
+                        height: '210px',
+                        backgroundColor: '#FFFFFF',
+                        border: '1px solid #E2E8F0',
+                        borderRadius: '8px',
+                        overflow: 'hidden',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center'
+                      }}>
+                        {panCardUrl ? (
+                          panCardUrl.match(/\.(pdf)(\?.*)?$/i) ? (
+                            <iframe src={`${panCardUrl}#toolbar=0&navpanes=0`} style={{ width: '100%', height: '100%', border: 'none' }} title="PAN Card" />
+                          ) : (
+                            <img src={panCardUrl} alt="PAN Card" style={{ width: '100%', height: '100%', objectFit: 'contain' }} />
+                          )
+                        ) : (
+                          <span style={{ fontSize: '11px', color: '#94A3B8', fontWeight: '600' }}>Not Attached</span>
+                        )}
+                      </div>
+                    </div>
+
+                  </div>
+                </div>
+
+                {/* FOOTER */}
+                <div style={{
+                  paddingTop: '10px',
+                  borderTop: '1px solid #E2E8F0',
+                  display: 'flex',
+                  justifyContent: 'space-between',
+                  alignItems: 'center',
+                  fontSize: '10.5px',
+                  color: '#64748B'
+                }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                    <ShieldCheck size={14} style={{ color: '#059669' }} />
+                    <span style={{ fontWeight: '600' }}>TFC Axom HR Verified Identity Page</span>
+                  </div>
+                  <div style={{ fontWeight: '600' }}>
+                    Page {idDocsPageIndex} of {totalPages} — Dossier ID: {candidate?.id || uuidValue}
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {/* PAGE 3: SEPARATE DEDICATED PAGE FOR ADDRESS PROOF DOCUMENT (BILLS PDF / IMAGE) */}
+            {hasAddressProof && (
+              <div
+                className="pdf-page pdf-page-address-proof"
                 style={{
                   backgroundColor: '#FFFFFF',
                   color: '#18181B',
-                  borderRadius: 0,
+                  borderRadius: '16px',
                   padding: 0,
-                  margin: 0,
+                  margin: '32px 0 0 0',
                   border: 'none',
                   boxShadow: 'none',
-                  minHeight: '2300px',
+                  minHeight: '300px',
+                  height: 'auto',
                   display: 'flex',
-                  flexDirection: 'column'
+                  flexDirection: 'column',
+                  overflow: 'hidden'
                 }}
               >
-                {/* EDGE-TO-EDGE EXPANDED NON-SCROLLING PDF CONTAINER */}
+                {/* AUTOMATED ADDRESS PROOF DOCUMENT HEADER (Hidden on Print) */}
+                <div className="no-print" style={{
+                  backgroundColor: '#F8FAFC',
+                  borderBottom: '1px solid #E2E8F0',
+                  padding: '10px 18px',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'space-between'
+                }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                    <FileText size={16} style={{ color: '#059669' }} />
+                    <span style={{ fontSize: '12px', fontWeight: '700', color: '#0F172A' }}>
+                      {addressProofType}
+                    </span>
+                  </div>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                    <span style={{ fontSize: '10px', background: '#DCFCE7', color: '#15803D', padding: '3px 10px', borderRadius: '6px', fontWeight: '800', letterSpacing: '0.5px' }}>
+                      ✓ Auto-Calculated Height ({addressProofPdfPageCount} Page{addressProofPdfPageCount > 1 ? 's' : ''})
+                    </span>
+                  </div>
+                </div>
+
+                {/* FULL EXPANDED PDF / IMAGE CONTAINER */}
                 <div style={{
                   flex: 1,
                   width: '100%',
-                  minHeight: '2300px',
+                  minHeight: '300px',
+                  height: 'auto',
                   backgroundColor: '#FFFFFF',
                   borderRadius: 0,
                   overflow: 'hidden'
                 }}>
-                  <iframe
-                    src={`${preloadedCvUrl || cvLink}#toolbar=0&navpanes=0&view=FitH`}
-                    loading="eager"
-                    style={{
-                      width: '100%',
-                      height: '2300px',
-                      border: 'none',
-                      margin: 0,
-                      padding: 0,
-                      backgroundColor: '#FFFFFF'
-                    }}
-                    title="Candidate Resume Document"
-                  />
+                  {addressProofLink.match(/\.(jpg|jpeg|png|webp)(\?.*)?$/i) ? (
+                    <img
+                      src={addressProofLink}
+                      alt="Address Proof Document"
+                      style={{
+                        width: '100%',
+                        minHeight: '300px',
+                        height: 'auto',
+                        display: 'block',
+                        objectFit: 'contain'
+                      }}
+                    />
+                  ) : (
+                    <iframe
+                      src={`${preloadedAddressProofUrl || addressProofLink}#toolbar=0&navpanes=0&scrollbar=0&view=FitH`}
+                      loading="eager"
+                      scrolling="no"
+                      style={{
+                        width: '100%',
+                        minHeight: '300px',
+                        height: `${Math.max(300, addressProofPdfPageCount * 1170)}px`,
+                        border: 'none',
+                        margin: 0,
+                        padding: 0,
+                        backgroundColor: '#FFFFFF',
+                        overflow: 'hidden'
+                      }}
+                      title="Address Proof PDF Document"
+                    />
+                  )}
+                </div>
+              </div>
+            )}
+
+            {/* PAGE 4+: ATTACHED RESUME CV FULL DOCUMENT */}
+            {hasCv && (
+              <div
+                className="pdf-page pdf-page-cv"
+                style={{
+                  backgroundColor: '#FFFFFF',
+                  color: '#18181B',
+                  borderRadius: '16px',
+                  padding: 0,
+                  margin: '32px 0 0 0',
+                  border: 'none',
+                  boxShadow: 'none',
+                  minHeight: '300px',
+                  height: 'auto',
+                  display: 'flex',
+                  flexDirection: 'column',
+                  overflow: 'hidden'
+                }}
+              >
+                {/* AUTOMATED CV DOCUMENT HEADER (Hidden on Print) */}
+                <div className="no-print" style={{
+                  backgroundColor: '#F8FAFC',
+                  borderBottom: '1px solid #E2E8F0',
+                  padding: '10px 18px',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'space-between'
+                }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                    <FileText size={16} style={{ color: '#059669' }} />
+                    <span style={{ fontSize: '12px', fontWeight: '700', color: '#0F172A' }}>
+                      Candidate Resume / CV Document
+                    </span>
+                  </div>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                    <span style={{ fontSize: '10px', background: '#DCFCE7', color: '#15803D', padding: '3px 10px', borderRadius: '6px', fontWeight: '800', letterSpacing: '0.5px' }}>
+                      ✓ Auto-Calculated Height ({pdfPageCount} Page{pdfPageCount > 1 ? 's' : ''})
+                    </span>
+                  </div>
+                </div>
+
+                {/* FULL EXPANDED PDF / IMAGE CONTAINER */}
+                <div style={{
+                  flex: 1,
+                  width: '100%',
+                  minHeight: '300px',
+                  height: 'auto',
+                  backgroundColor: '#FFFFFF',
+                  borderRadius: 0,
+                  overflow: 'hidden'
+                }}>
+                  {cvLink.match(/\.(jpg|jpeg|png|webp)(\?.*)?$/i) ? (
+                    <img
+                      src={cvLink}
+                      alt="Candidate Resume"
+                      style={{
+                        width: '100%',
+                        minHeight: '300px',
+                        height: 'auto',
+                        display: 'block',
+                        objectFit: 'contain'
+                      }}
+                    />
+                  ) : (
+                    <iframe
+                      src={`${preloadedCvUrl || cvLink}#toolbar=0&navpanes=0&scrollbar=0&view=FitH`}
+                      loading="eager"
+                      scrolling="no"
+                      style={{
+                        width: '100%',
+                        minHeight: '300px',
+                        height: `${Math.max(300, pdfPageCount * 1170)}px`,
+                        border: 'none',
+                        margin: 0,
+                        padding: 0,
+                        backgroundColor: '#FFFFFF',
+                        overflow: 'hidden'
+                      }}
+                      title="Candidate Resume Document"
+                    />
+                  )}
                 </div>
               </div>
             )}
@@ -826,7 +1490,7 @@ export default function StrictCandidatePdfPage() {
         )}
       </main>
 
-      {/* STRICT SINGLE-PAGE A4 PRINT STYLES */}
+      {/* STRICT PRINT MEDIA STYLES */}
       <style jsx global>{`
         @page {
           size: A4 portrait;
@@ -851,36 +1515,60 @@ export default function StrictCandidatePdfPage() {
           .no-print {
             display: none !important;
           }
-          .pdf-page-1 {
+          .pdf-page-1, .pdf-page-id-docs {
             box-shadow: none !important;
             margin: 0 auto !important;
             border-radius: 0 !important;
-            width: 210mm !important;
+            width: 100% !important;
+            max-width: 100% !important;
             height: 297mm !important;
             max-height: 297mm !important;
-            padding: 12mm 15mm !important;
+            padding: 10mm 12mm !important;
             box-sizing: border-box !important;
-            page-break-before: avoid !important;
+            page-break-before: always !important;
             page-break-after: always !important;
-            break-before: avoid !important;
+            break-before: page !important;
             break-after: page !important;
             break-inside: avoid !important;
           }
-          .pdf-page-2 {
+          .pdf-page-1 {
+            page-break-before: avoid !important;
+            break-before: avoid !important;
+          }
+          .pdf-page-address-proof, .pdf-page-cv {
             box-shadow: none !important;
-            margin: 0 auto !important;
+            margin: 0 !important;
             padding: 0 !important;
-            width: 210mm !important;
+            width: 100% !important;
+            max-width: 100% !important;
             height: auto !important;
-            min-height: 297mm !important;
-            overflow: visible !important;
+            min-height: 300px !important;
+            overflow: hidden !important;
             page-break-before: always !important;
             break-before: page !important;
+            box-sizing: border-box !important;
           }
-          .pdf-page-2 iframe {
+          .pdf-page-address-proof iframe {
             width: 100% !important;
-            height: 2300px !important;
-            min-height: 2300px !important;
+            max-width: 100% !important;
+            height: ${Math.max(1, addressProofPdfPageCount) * 297}mm !important;
+            min-height: 300px !important;
+            border: none !important;
+            margin: 0 !important;
+            padding: 0 !important;
+            box-sizing: border-box !important;
+            overflow: hidden !important;
+          }
+          .pdf-page-cv iframe {
+            width: 100% !important;
+            max-width: 100% !important;
+            height: ${Math.max(1, pdfPageCount) * 297}mm !important;
+            min-height: 300px !important;
+            border: none !important;
+            margin: 0 !important;
+            padding: 0 !important;
+            box-sizing: border-box !important;
+            overflow: hidden !important;
           }
         }
       `}</style>

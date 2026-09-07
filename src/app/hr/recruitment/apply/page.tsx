@@ -251,19 +251,21 @@ function CandidatePublicApplyPageContent() {
     setLoading(true);
 
     try {
-      const generatedAppId = `APP-${Math.floor(100000 + Math.random() * 900000)}`;
-      const candidateCode = `CND-${Math.floor(100000 + Math.random() * 900000)}`;
+      const candidateCode = (refQuery && refQuery.startsWith('CND-'))
+        ? refQuery
+        : `CND-${Math.floor(100000 + Math.random() * 900000)}`;
+      const generatedAppId = candidateCode;
       const fullName = `${formData.first_name.trim()} ${formData.last_name.trim()}`;
       
       const newCandidate = {
-        id: generatedAppId,
+        id: candidateCode,
         candidate_id: candidateCode,
         name: fullName,
         email: formData.email.trim(),
         phone: formData.phone.trim(),
         role: formData.role,
         stage: 'Lead',
-        refId: refQuery,
+        refId: refQuery || candidateCode,
         dateAdded: new Date().toISOString().split('T')[0],
         cvFileName: cvFile ? cvFile.name : undefined
       };
